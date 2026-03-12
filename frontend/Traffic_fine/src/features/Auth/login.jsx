@@ -52,20 +52,40 @@ export default function Login() {
         const data = await response.json();
         console.log("Response data:", data);
         
-        // Extract token from backend response
+        // Extract token and user info from backend response
         const token = data.data?.token;
+        const userType = data.data?.userType;
         
         if (token) {
-          // Store token
+          // Store token and user info
           localStorage.setItem('token', token);
-          console.log("Token stored successfully");
+          
+          // Try to get userType from data.data or data directly
+          const userType = data.data?.userType || data.userType || data.role;
+          if (userType) {
+            localStorage.setItem('userType', userType);
+          }
+          
+          console.log("Login successful, role detected:", userType);
           
           setIsLoggedIn(true);
           setSuccessMessage('Login successful! Redirecting...');
           
-          // Redirect after 2 seconds
+          // Redirect after 2 seconds based on userType
           setTimeout(() => {
-            window.location.href = './Departmentt';
+            if (userType === 'DRIVER') {
+              window.location.href = '/dashboard/driver';
+            } else if (userType === 'POLICEOIC') {
+              window.location.href = '/dashboard/oic';
+            } else if (userType === 'USERS') {
+              window.location.href = '/dashboard/user';
+            } else if (userType === 'POLICEOFFICERS') {
+              window.location.href = '/police/dashboard';
+            } else {
+              // If no role matches, go to driver by default if that's what we want, 
+              // or keep Departmentt as final fallback
+              window.location.href = '/dashboard/driver'; 
+            }
           }, 2000);
         }
       } else {
