@@ -1,0 +1,55 @@
+package com.Traffic_Fines.System.Auth;
+
+import com.Traffic_Fines.System.Respons.Respons;
+import com.Traffic_Fines.System.Util.ValidationUtil;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173/")
+public class AuthController {
+
+    @Autowired
+    private AuthService authService;
+
+    // Login
+
+    @PostMapping("/login")
+    public ResponseEntity<Respons<?>> login(@RequestBody LoginDTO loginDTO) {
+        try{
+            Map<String, String> errors = ValidationUtil.validateObject(loginDTO);
+            if (!errors.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Input Validation failed", errors));
+            }
+            return ResponseEntity.ok(new Respons<>(true,"Login successful",authService.login(loginDTO.getEmail(), loginDTO.getPassword())));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false,"runtime error", e.getMessage()));
+        }
+    }
+
+    // Create new user
+    @PostMapping("/register")
+    public ResponseEntity<Respons<?>> createUser(@RequestBody RegisterDTO registerDTO) {
+        try{
+            Map<String, String> errors = ValidationUtil.validateObject(registerDTO);
+            if (!errors.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>( false, "Input Validation failed", errors));
+            }
+            return ResponseEntity.ok(new Respons<>(true,authService.createUser(registerDTO),"mmmmm"));
+        }catch (RuntimeException e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, e.getMessage(), null));
+        }
+    }
+
+    @GetMapping("/logout/{userId}")
+    public ResponseEntity<Respons<?>> logout(@PathVariable Integer userId) {
+        return ResponseEntity.ok(new Respons<>(true,"Logout successful","user id:"+userId));
+    }
+
+}
