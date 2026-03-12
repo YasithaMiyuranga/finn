@@ -21,9 +21,10 @@ public class DriverController {
     @GetMapping("/getDrivers")
     public ResponseEntity<Respons<?>> getAllDrivers() {
         try {
-            return ResponseEntity.ok(new Respons<>(true, "all Police OICs", driverService.getAllDrivers()));
+            java.util.List<java.util.Map<String, Object>> drivers = driverService.getAllDrivers();
+            return ResponseEntity.ok(new Respons<>(true, "all drivers", drivers));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "oic mokuth n", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error fetching drivers", e.getMessage()));
         }
     }
 
@@ -59,6 +60,33 @@ public class DriverController {
             return ResponseEntity.ok(new Respons<>(true, "delete police_officers", driverService.deleteDriver(id)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/getDriverByUserId/{userId}")
+    public ResponseEntity<Respons<?>> getDriverByUserId(@PathVariable int userId) {
+        try {
+            return ResponseEntity.ok(new Respons<>(true, "Driver found", driverService.getDriverByUserId(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Driver not found", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/getStats")
+    public ResponseEntity<Respons<?>> getDriverStats() {
+        try {
+            return ResponseEntity.ok(new Respons<>(true, "driver stats", driverService.getDriverStats()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error fetching stats", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/getMonthlyChart")
+    public ResponseEntity<Respons<?>> getMonthlyChart() {
+        try {
+            return ResponseEntity.ok(new Respons<>(true, "monthly chart", driverService.getMonthlyChartData()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error fetching chart", e.getMessage()));
         }
     }
 }

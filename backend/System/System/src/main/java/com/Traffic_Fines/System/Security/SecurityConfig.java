@@ -35,6 +35,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/Driver/getDriverByUserId/**",
+                                "/api/Driver/getDrivers",
+                                "/api/Driver/getStats",
+                                "/api/Driver/getMonthlyChart",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html").permitAll()

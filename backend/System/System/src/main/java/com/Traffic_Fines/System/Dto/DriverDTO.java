@@ -58,6 +58,11 @@ public class DriverDTO {
     @FutureOrPresent(message = "License expiry date must be in the future or present")
     private LocalDate licenseExpiry;
 
+    @NotBlank(message = "Class of vehicle is required")
+    private String classOfVehicle;
+
+    private LocalDate registeredDate;
+
     @Min(value = 1, message = "User is required")
     private int user;
 

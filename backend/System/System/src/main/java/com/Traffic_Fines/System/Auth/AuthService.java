@@ -19,17 +19,27 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private com.Traffic_Fines.System.Repository.DriverRepo driverRepo;
 
     public LoginResponse login(String email, String password){
         User user = userRepo.findByEmail(email);
         if(user != null){
-
             if(passwordEncoder.matches(password, user.getPassword())){
                 Map<String, Object> jwtData = new HashMap<>();
                 jwtData.put("email",email);
                 jwtData.put("role",user.getUserType());
                 String token = jwtUtil.createToken(jwtData);
-                return new LoginResponse(user.getId(),token);
+                
+                boolean profileComplete = false;
+                if (user.getUserType().toString().equalsIgnoreCase("DRIVER")) {
+                    profileComplete = (driverRepo.findByUser(user.getId()) != null);
+                } else {
+                    // For other roles, we can assume true or handle differently
+                    profileComplete = true; 
+                }
+                
+                return new LoginResponse(user.getId(), token, user.getUserType().toString(), profileComplete);
             }
         }
         throw new RuntimeException("Invalid email or password");
