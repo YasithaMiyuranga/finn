@@ -58,6 +58,12 @@ public class Driver {
     @Column(name = "license_expiry")
     private LocalDate licenseExpiry;
 
+    @Column(name = "class_of_vehicle", length = 50)
+    private String classOfVehicle;
+
+    @Column(name = "registered_date")
+    private LocalDate registeredDate = LocalDate.now();
+
     public enum Province {
         Western, Central, Southern, Northern, Eastern, North_Western, North_Central, Uva, Sabaragamuwa
     }

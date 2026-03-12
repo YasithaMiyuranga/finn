@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Car, CheckCircle, Shield, AlertCircle, User, Lock, Phone, HelpCircle } from 'lucide-react';
 
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -50,43 +52,47 @@ export default function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Response data:", data);
+        console.log("Full Response data:", data);
         
-        // Extract token and user info from backend response
-        const token = data.data?.token;
-        const userType = data.data?.userType;
+        const token = data.data?.token || data.token;
+        const detectedUserType = data.data?.userType || data.userType || data.role;
         
+        console.log("Detected Token:", token ? "Exist" : "Missing");
+        console.log("Detected Role:", detectedUserType);
+
         if (token) {
-          // Store token and user info
           localStorage.setItem('token', token);
-          
-          // Try to get userType from data.data or data directly
-          const userType = data.data?.userType || data.userType || data.role;
-          if (userType) {
-            localStorage.setItem('userType', userType);
+          const userId = data.data?.id || data.id;
+          if (userId) {
+            localStorage.setItem('userId', userId);
+          }
+          if (detectedUserType) {
+            localStorage.setItem('userType', detectedUserType);
           }
           
-          console.log("Login successful, role detected:", userType);
-          
           setIsLoggedIn(true);
-          setSuccessMessage('Login successful! Redirecting...');
+          setSuccessMessage('Login successful!');
           
-          // Redirect after 2 seconds based on userType
-          setTimeout(() => {
-            if (userType === 'DRIVER') {
-              window.location.href = '/dashboard/driver';
-            } else if (userType === 'POLICEOIC') {
-              window.location.href = '/dashboard/oic';
-            } else if (userType === 'USERS') {
-              window.location.href = '/dashboard/user';
-            } else if (userType === 'POLICEOFFICERS') {
-              window.location.href = '/police/dashboard';
+          const role = String(detectedUserType).toUpperCase();
+          const isProfileComplete = data.data?.profileComplete ?? data.profileComplete;
+
+          if (role === 'DRIVER') {
+            if (isProfileComplete) {
+              navigate('/dashboard/driver');
             } else {
-              // If no role matches, go to driver by default if that's what we want, 
-              // or keep Departmentt as final fallback
-              window.location.href = '/dashboard/driver'; 
+              navigate('/dashboard/driver/complete-profile');
             }
-          }, 2000);
+          } else if (role === 'POLICEOIC') {
+            navigate('/dashboard/oic');
+          } else if (role === 'USERS') {
+            navigate('/dashboard/user');
+          } else if (role === 'POLICEOFFICERS') {
+            navigate('/police/dashboard');
+          } else if (role === 'ADMIN') {
+            navigate('/dashboard/admin');
+          } else {
+            navigate('/dashboard/driver');
+          }
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
@@ -117,28 +123,6 @@ export default function Login() {
     setSuccessMessage('');
   };
 
-  // Success screen after login
-  if (isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4" 
-           style={{
-             background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)'
-           }}>
-        <div className="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-md">
-          <CheckCircle className="mx-auto mb-4 text-green-500" size={48} />
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">Welcome Back!</h2>
-          <p className="text-green-600 mb-6 text-lg">{successMessage}</p>
-          <p className="text-gray-600 mb-6">Redirecting to dashboard...</p>
-          <button 
-            onClick={handleLogout}
-            className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 transition-all duration-200"
-          >
-            Log Out
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4" 

@@ -30,7 +30,7 @@ public class User {
     private UserType userType = UserType.USERS;
 
     public enum UserType {
-         POLICEOFFICERS, USERS, POLICEOIC, DRIVER
+         POLICEOFFICERS, USERS, POLICEOIC, DRIVER, ADMIN
     }
 
 
