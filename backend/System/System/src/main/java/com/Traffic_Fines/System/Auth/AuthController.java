@@ -41,7 +41,7 @@ public class AuthController {
             if (!errors.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>( false, "Input Validation failed", errors));
             }
-            return ResponseEntity.ok(new Respons<>(true,authService.createUser(registerDTO),"mmmmm"));
+            return ResponseEntity.ok(new Respons<>(true,"register Successfully!", authService.createUser(registerDTO)));
         }catch (RuntimeException e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, e.getMessage(), null));
         }

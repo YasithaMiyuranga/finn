@@ -45,6 +45,8 @@ public class Police_OfficersDTO {
 
     private LocalDate registeredDate;
 
-    // Optional: if not provided from frontend during creation, backend uses user repo logic
-    private int user;
+    private Integer userId;
+    
+    // Extracted by ModelMapper from Police_Officers.user.email
+    private String userEmail;
 }

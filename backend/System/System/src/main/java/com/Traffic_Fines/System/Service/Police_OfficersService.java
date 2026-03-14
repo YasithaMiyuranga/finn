@@ -27,12 +27,12 @@ public class Police_OfficersService {
 
     public Respons savePoliceOfficer(Police_OfficersDTO police_officersDTO) {
         // check FK in police officer table
-        Police_Officers police_officers = policeOfficersRepo.findByUser(police_officersDTO.getUser()); // customise findByUser function
+        Police_Officers police_officers = policeOfficersRepo.findByUser(police_officersDTO.getUserId()); // customise findByUser function
         if (police_officers != null) {
             return new Respons<>(false, "already has data", null);
         }
         // get user, using user id ( police_officerDTO user(int) )
-        User user = userRepo.findById(police_officersDTO.getUser());
+        User user = userRepo.findById(police_officersDTO.getUserId()).orElse(null);
         if(user ==null) return new Respons<>(false, "invalid id", null);
 
         // save police office

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "api/police_officers")
-@CrossOrigin
+@RequestMapping(value = "/api/police_officers")
+@CrossOrigin(origins = "http://localhost:5173/")
 public class Police_OfficersController {
 
     @Autowired

@@ -2,54 +2,34 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, Users, ChevronDown, LogOut,
-    Bell, Pencil, Trash2, X
+    Bell, Pencil, Trash2
 } from 'lucide-react';
 
-export default function ViewAllTrafficOfficers() {
+export default function ProvisionsDetails() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [officers, setOfficers] = useState([]);
+    const [provisions, setProvisions] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false); // Make it false initially as we use dummy data
 
-    // Edit Modal
-    const [editModal, setEditModal] = useState(false);
-    const [editData, setEditData] = useState({});
+    const [formData, setFormData] = useState({
+        fineId: '',
+        sectionOfAct: '',
+        provision: '',
+        fineAmount: ''
+    });
 
-    // Delete Modal
-    const [deleteModal, setDeleteModal] = useState(false);
-    const [deleteId, setDeleteId] = useState(null);
-
+    // We can seed dummy data to look like the PHP screenshot
     useEffect(() => {
-        fetchOfficers();
+        setProvisions([
+            { fineId: 100, sectionOfAct: 'Section 32', provision: 'Revenue License to be displayed on motor vehicles and produced when required.', fineAmount: '1500.00' },
+            { fineId: 102, sectionOfAct: 'Section 128B', provision: 'Driving a special purpose vehicle without obtaining a licence.', fineAmount: '1000.00' },
+            { fineId: 103, sectionOfAct: 'Section 128A', provision: 'Failure to obtain authorization to drive a vehicle loaded with chemicals, hazardous waste, &e.', fineAmount: '2000.00' },
+            { fineId: 104, sectionOfAct: 'section 130', provision: 'Failure to have a Licence to drive a specific class of vehicles.', fineAmount: '1000.00' },
+            { fineId: 105, sectionOfAct: 'Section 135', provision: 'Failure to carry a Driving Licence when driving.', fineAmount: '2000.00' },
+        ]);
     }, []);
-
-    const fetchOfficers = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // Handle if there's no endpoint or it fails without crashing the UI
-            if (res.ok) {
-                const data = await res.json();
-                if (data.success) {
-                    setOfficers(data.data || []);
-                } else if (Array.isArray(data)) {
-                    setOfficers(data); // Support direct array return
-                }
-            } else {
-                console.warn('Endpoint might not be quite ready or no data returned.');
-                setOfficers([]);
-            }
-        } catch (err) {
-            console.error('Error fetching officers:', err);
-            setOfficers([]); // Fallback to empty
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleLogout = () => {
         localStorage.clear();
@@ -99,40 +79,27 @@ export default function ViewAllTrafficOfficers() {
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
     };
 
-    const filteredOfficers = (officers || []).filter(o =>
-        String(o.policeid || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(o.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (o.userEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleAddFineTicket = (e) => {
+        e.preventDefault();
+        alert("Fine Ticket Provision Added! (Backend integration pending)");
+        setProvisions([...provisions, formData]);
+        setFormData({
+            fineId: '',
+            sectionOfAct: '',
+            provision: '',
+            fineAmount: ''
+        });
+    };
+
+    const filteredProvisions = (provisions || []).filter(p =>
+        String(p.fineId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(p.sectionOfAct || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(p.provision || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const handleEditSave = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/police_officers/updatePoliceOfficer/${editData.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(editData)
-            });
-            setEditModal(false);
-            fetchOfficers();
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const handleDelete = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/police_officers/deletePoliceOfficer/${deleteId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setDeleteModal(false);
-            fetchOfficers();
-        } catch (err) {
-            console.error(err);
-        }
-    };
 
     const sidebarWidth = sidebarOpen ? '220px' : '60px';
 
@@ -161,15 +128,15 @@ export default function ViewAllTrafficOfficers() {
                     <button key={item.id} onClick={() => handleNav(item.id)} title={item.label} style={{
                         width: '100%', padding: '14px 0',
                         paddingLeft: sidebarOpen ? '18px' : '0',
-                        color: item.id === 'view-all-traffic-officers' ? '#ffffff' : 'rgba(255,255,255,0.6)',
-                        backgroundColor: item.id === 'view-all-traffic-officers' ? '#1a7a7a' : 'transparent',
+                        color: item.id === 'provisions-details' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+                        backgroundColor: item.id === 'provisions-details' ? '#1a7a7a' : 'transparent',
                         border: 'none', cursor: 'pointer', display: 'flex',
                         alignItems: 'center', justifyContent: sidebarOpen ? 'flex-start' : 'center',
                         gap: '14px', transition: 'all 0.2s', whiteSpace: 'nowrap',
                     }} className="hover:bg-white/10">
                         <span style={{ flexShrink: 0 }}>{item.icon}</span>
                         {sidebarOpen && (
-                            <span style={{ fontSize: '14px', fontWeight: '500', color: item.id === 'view-all-traffic-officers' ? '#fff' : 'rgba(255,255,255,0.8)' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '500', color: item.id === 'provisions-details' ? '#fff' : 'rgba(255,255,255,0.8)' }}>
                                 {item.label}
                             </span>
                         )}
@@ -225,7 +192,7 @@ export default function ViewAllTrafficOfficers() {
                 <div style={{ padding: '24px' }}>
 
                     {/* Title + Breadcrumb */}
-                    <h1 style={{ fontSize: '28px', fontWeight: '400', color: '#1e293b', marginBottom: '6px' }}>View All Traffic Officers</h1>
+                    <h1 style={{ fontSize: '28px', fontWeight: '400', color: '#1e293b', marginBottom: '6px' }}>Provisions Details</h1>
                     
                     <div style={{ 
                         backgroundColor: '#e9ecef', 
@@ -241,18 +208,92 @@ export default function ViewAllTrafficOfficers() {
                             Dashboard
                         </button>
                         <span>/</span>
-                        <span>View All Traffic Officers</span>
+                        <span>Provisions Details</span>
                     </div>
 
-                    {/* Card */}
+                    {/* Add Details Card */}
+                    <div style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: '32px' }}>
+                        <div style={{ padding: '14px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <svg viewBox="0 0 384 512" fill="currentColor" width="16" height="16" style={{ color: '#374151' }}>
+                                <path d="M0 512V48C0 21.49 21.49 0 48 0h288c26.51 0 48 21.49 48 48v464L333.3 459.3C328.6 454.6 322.4 452 316 452S303.4 454.6 298.7 459.3L256 502.1L213.3 459.3C208.6 454.6 202.4 452 196 452S183.4 454.6 178.7 459.3L136 502.1L93.25 459.3C88.63 454.6 82.37 452 76 452S63.37 454.6 58.75 459.3L16 502.1C10.25 507.8 0 503.8 0 496zM112 368C112 376.8 119.2 384 128 384H256C264.8 384 272 376.8 272 368C272 359.2 264.8 352 256 352H128C119.2 352 112 359.2 112 368zM272 304C272 295.2 264.8 288 256 288H128C119.2 288 112 295.2 112 304C112 312.8 119.2 320 128 320H256C264.8 320 272 312.8 272 304zM272 240C272 231.2 264.8 224 256 224H128C119.2 224 112 231.2 112 240C112 248.8 119.2 256 128 256H256C264.8 256 272 248.8 272 240zM128 192H256C264.8 192 272 184.8 272 176C272 167.2 264.8 160 256 160H128C119.2 160 112 167.2 112 176C112 184.8 119.2 192 128 192zM272 112C272 103.2 264.8 96 256 96H128C119.2 96 112 103.2 112 112C112 120.8 119.2 128 128 128H256C264.8 128 272 120.8 272 112z"/>
+                            </svg>
+                            <span style={{ fontSize: '15px', color: '#1f2937', fontWeight: 600 }}>Add a Provision Details</span>
+                        </div>
+
+                        <div style={{ padding: '2rem' }}>
+                            <form onSubmit={handleAddFineTicket} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                {/* Row 1 */}
+                                <div style={{ display: 'flex', gap: '2rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Provision ID</label>
+                                        <input 
+                                            type="text" 
+                                            name="fineId" 
+                                            value={formData.fineId} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Provision ID" 
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Section of Act</label>
+                                        <input 
+                                            type="text" 
+                                            name="sectionOfAct" 
+                                            value={formData.sectionOfAct} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Section of Act" 
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Row 2 */}
+                                <div style={{ display: 'flex', gap: '2rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Provision</label>
+                                        <input 
+                                            type="text" 
+                                            name="provision" 
+                                            value={formData.provision} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Provision" 
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Fine Amount</label>
+                                        <input 
+                                            type="number" 
+                                            name="fineAmount" 
+                                            value={formData.fineAmount} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Fine Amount" 
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <div>
+                                    <button type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#0d6efd', color: '#fff', border: '1px solid #0d6efd', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, cursor: 'pointer', transition: 'all .15s ease-in-out' }} onMouseOver={(e) => e.target.style.backgroundColor='#0b5ed7'} onMouseOut={(e) => e.target.style.backgroundColor='#0d6efd'}>
+                                        <svg viewBox="0 0 512 512" fill="white" width="14" height="14"><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-16-160v-80H160c-8.8 0-16-7.2-16-16v-16c0-8.8 7.2-16 16-16h80v-80c0-8.8 7.2-16 16-16h16c8.8 0 16 7.2 16 16v80h80c8.8 0 16 7.2 16 16v16c0 8.8-7.2 16-16 16h-80v80c0 8.8-7.2 16-16 16h-16c-8.8 0-16-7.2-16-16z"/></svg>
+                                        Add Fine Ticket
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    {/* Table Card */}
                     <div style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
 
                         {/* Card Header */}
                         <div style={{ padding: '14px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style={{ color: '#64748b' }}>
+                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style={{ color: '#1f2937' }}>
                                 <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
                             </svg>
-                            <span style={{ fontSize: '14px', color: '#374151', fontWeight: 600 }}>You can sort data here</span>
+                            <span style={{ fontSize: '15px', color: '#1f2937', fontWeight: 600 }}>All Fine Tickets Details</span>
                         </div>
 
                         {/* Export Buttons */}
@@ -266,10 +307,10 @@ export default function ViewAllTrafficOfficers() {
                                 ].map(btn => (
                                     <button key={btn.label} style={{
                                         backgroundColor: btn.color, color: 'white', border: 'none',
-                                        borderRadius: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.875rem',
-                                        fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                                        borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem',
+                                        fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                                     }} className="hover:opacity-90 transition-opacity">
-                                        <span style={{ fontSize: '12px', marginRight: '4px' }}>{btn.icon}</span> {btn.label}
+                                        <span style={{ fontSize: '14px', marginRight: '4px' }}>{btn.icon}</span> {btn.label}
                                     </button>
                                 ))}
                             </div>
@@ -295,90 +336,51 @@ export default function ViewAllTrafficOfficers() {
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', borderBottom: '1px solid #dee2e6' }}>
                                 <thead>
-                                    <tr style={{ backgroundColor: '#e9ecef' }}>
-                                        {['Action ⇅', 'Traffic Officer ID ⇅', 'Traffic Officer Name ⇅', 'Police Station ⇅', 'Court ⇅', 'Traffic Officer Email ⇅', 'Registered Date ⇅'].map(h => (
+                                    <tr style={{ backgroundColor: '#ccc', color: '#000' }}>
+                                        {['Action ⇅', 'Fine ID ⇅', 'Section of Act ⇅', 'Provision ⇅', 'Fine Amount ⇅'].map(h => (
                                             <th key={h} style={{
                                                 padding: '12px 16px', textAlign: 'left', fontWeight: '700',
-                                                color: '#212529', borderBottom: '2px solid #dee2e6', whiteSpace: 'nowrap'
+                                                borderBottom: '2px solid #dee2e6', whiteSpace: 'nowrap'
                                             }}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {loading ? (
-                                        <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading officers...</td></tr>
-                                    ) : filteredOfficers.length === 0 ? (
-                                        <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>No officers found</td></tr>
-                                    ) : filteredOfficers.map((officer, idx) => (
+                                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading tracking details...</td></tr>
+                                    ) : filteredProvisions.length === 0 ? (
+                                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>No provisions found</td></tr>
+                                    ) : filteredProvisions.map((item, idx) => (
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
                                                     {/* Edit */}
-                                                    <button onClick={() => { setEditData({ ...officer }); setEditModal(true); }}
-                                                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
+                                                    <button onClick={() => { alert('Edit modal triggering pending backend integration') }}
+                                                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer' }}
                                                         title="Edit">
-                                                        <Pencil size={14} />
+                                                        <Pencil size={15} />
                                                     </button>
                                                     {/* Delete */}
-                                                    <button onClick={() => { setDeleteId(officer.id); setDeleteModal(true); }}
-                                                        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
+                                                    <button onClick={() => { alert('Delete modal triggering pending backend integration') }}
+                                                        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer' }}
                                                         title="Delete">
-                                                        <Trash2 size={14} />
+                                                        <Trash2 size={15} />
                                                     </button>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>P{String(officer.policeid || '').padStart(5, '0')}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{officer.fullName || '-'}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{officer.policeStation || '-'}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{officer.court || '-'}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{officer.userEmail || '-'}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{officer.registeredDate || '-'}</td>
+                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.fineId}</td>
+                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.sectionOfAct}</td>
+                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.provision}</td>
+                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.fineAmount}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
-
-            {/* ======== EDIT MODAL (Placeholder) ======== */}
-            {editModal && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ background: 'white', borderRadius: '12px', width: '500px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
-                        <div style={{ backgroundColor: '#28a745', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h4 style={{ color: 'white', margin: 0, fontWeight: '700' }}>✏️ Edit Traffic Officer Details</h4>
-                            <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '20px' }}>×</button>
-                        </div>
-                        <div style={{ padding: '20px' }}>
-                            <p>Edit functionality form goes here.</p>
-                        </div>
-                        <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button onClick={() => setEditModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
-                            <button onClick={handleEditSave} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ======== DELETE CONFIRM MODAL ======== */}
-            {deleteModal && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ background: 'white', borderRadius: '12px', width: '420px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
-                        <div style={{ backgroundColor: '#dc3545', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h4 style={{ color: 'white', margin: 0, fontWeight: '700' }}>🗑️ Delete Traffic Officer</h4>
-                            <button onClick={() => setDeleteModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '20px' }}>×</button>
-                        </div>
-                        <div style={{ padding: '24px 20px' }}>
-                            <p style={{ margin: 0, fontSize: '15px', color: '#374151' }}>Are you sure you want to delete this officer from the system?</p>
-                        </div>
-                        <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button onClick={() => setDeleteModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
-                            <button onClick={handleDelete} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Confirm Delete</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }
