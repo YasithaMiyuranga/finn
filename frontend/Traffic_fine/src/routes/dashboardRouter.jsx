@@ -15,6 +15,9 @@ import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
 import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
 import ViewAllDrivers from '../features/Admin/ViewAllDrivers';
+import AddTrafficOfficer from '../features/Admin/AddTrafficOfficer';
+import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
+import ViolationDetails from '../features/Admin/ViolationDetails';
 
 const DashboardRouter = () => {
     return (
@@ -25,7 +28,10 @@ const DashboardRouter = () => {
             <Route path="/user" element={<GeneralUserDashboard />} />
             <Route path="/oic" element={<PoliceOICDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/add-traffic-officer" element={<AddTrafficOfficer />} />
+            <Route path="/admin/view-all-traffic-officers" element={<ViewAllTrafficOfficers />} />
             <Route path="/admin/view-all-drivers" element={<ViewAllDrivers />} />
+            <Route path="/admin/violation-details" element={<ViolationDetails />} />
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />

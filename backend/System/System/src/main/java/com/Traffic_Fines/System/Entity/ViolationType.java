@@ -15,7 +15,6 @@ import java.util.List;
 public class ViolationType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "violation_id")
     private int id;
 
@@ -31,7 +30,14 @@ public class ViolationType {
     @OneToMany(mappedBy = "violationType", cascade = CascadeType.ALL)
     private List<TrafficFine> trafficFine;
 
-    // New relationship for points configuration
-    @OneToOne(mappedBy = "violationType", cascade = CascadeType.ALL)
-    private ViolationPointsConfig pointsConfig;
+    @Column(name = "points")
+    private int points;
+
+    public enum SeverityLevel {
+        LOW, MEDIUM, HIGH, CRITICAL
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "severity_level", length = 20)
+    private SeverityLevel severityLevel;
 }

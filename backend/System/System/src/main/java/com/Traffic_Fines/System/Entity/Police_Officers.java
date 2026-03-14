@@ -49,6 +49,12 @@ public class Police_Officers {
     @Column(name = "police_station", length = 100)
     private String policeStation;
 
+    @Column(name = "court", length = 100)
+    private String court;
+
+    @Column(name = "registered_date")
+    private LocalDate registeredDate = LocalDate.now();
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;

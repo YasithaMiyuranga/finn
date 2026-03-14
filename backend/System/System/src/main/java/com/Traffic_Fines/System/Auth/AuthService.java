@@ -45,7 +45,7 @@ public class AuthService {
         throw new RuntimeException("Invalid email or password");
     }
 
-    public String createUser(RegisterDTO registerDTO) {
+    public int createUser(RegisterDTO registerDTO) {
         if (userRepo.existsByEmail(registerDTO.getEmail())) {
             throw new RuntimeException("User with email '" + registerDTO.getEmail() + "' already exists");
         }
@@ -55,8 +55,8 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
         user.setUserType(registerDTO.getUserType());
 
-        userRepo.save(user);
-        return "register Successfully!";
+        User savedUser = userRepo.save(user);
+        return savedUser.getId();
     }
 }
 

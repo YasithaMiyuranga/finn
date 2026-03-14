@@ -92,12 +92,7 @@ export default function Register() {
       console.log('API Response:', response.data);
 
       if (response.ok) {
-        setSuccessMessage('Registration successful! Redirecting to login...');
-        setIsRegistered(true);
-
-        setTimeout(() => {
-          window.location.href = '/auth/login';
-        }, 2000);
+        window.location.href = '/auth/login';
       } else {
         const errorData = await response.json().catch(() => ({}));
 
@@ -115,28 +110,6 @@ export default function Register() {
       setIsLoading(false);
     }
   };
-
-  // Success screen after successful registration
-  if (isRegistered) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4"
-        style={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%)'
-        }}>
-        <div className="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-md">
-          <CheckCircle className="mx-auto mb-4 text-green-500" size={48} />
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">Registration Complete!</h2>
-          <p className="text-green-600 mb-6 text-lg">{successMessage}</p>
-          <p className="text-gray-600 mb-6">You will be redirected to the login page shortly.</p>
-          <a href="/auth/login"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all duration-200 inline-block"
-          >
-            Go to Login
-          </a>
-        </div>
-      </div>
-    );
-  }
 
   // Main Registration Form UI
   return (
