@@ -17,7 +17,7 @@ import AdminDashboard from '../features/Admin/AdminDashboard';
 import ViewAllDrivers from '../features/Admin/ViewAllDrivers';
 import AddTrafficOfficer from '../features/Admin/AddTrafficOfficer';
 import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
-import ProvisionsDetails from '../features/Admin/ProvisionsDetails';
+import ViolationDetails from '../features/Admin/ViolationDetails';
 
 const DashboardRouter = () => {
     return (
@@ -31,7 +31,7 @@ const DashboardRouter = () => {
             <Route path="/admin/add-traffic-officer" element={<AddTrafficOfficer />} />
             <Route path="/admin/view-all-traffic-officers" element={<ViewAllTrafficOfficers />} />
             <Route path="/admin/view-all-drivers" element={<ViewAllDrivers />} />
-            <Route path="/admin/provisions-details" element={<ProvisionsDetails />} />
+            <Route path="/admin/violation-details" element={<ViolationDetails />} />
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />

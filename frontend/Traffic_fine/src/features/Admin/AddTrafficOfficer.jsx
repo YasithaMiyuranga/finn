@@ -48,23 +48,23 @@ export default function AddTrafficOfficer() {
                 </svg>
             )
         },
+        { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
         { 
-            id: 'provisions-details', 
-            label: 'Provisions Details', 
+            id: 'violation-details', 
+            label: 'Violation Details', 
             icon: (
                 <svg viewBox="0 0 384 512" fill="currentColor" width="22" height="22">
                     <path d="M0 512V48C0 21.49 21.49 0 48 0h288c26.51 0 48 21.49 48 48v464L333.3 459.3C328.6 454.6 322.4 452 316 452S303.4 454.6 298.7 459.3L256 502.1L213.3 459.3C208.6 454.6 202.4 452 196 452S183.4 454.6 178.7 459.3L136 502.1L93.25 459.3C88.63 454.6 82.37 452 76 452S63.37 454.6 58.75 459.3L16 502.1C10.25 507.8 0 503.8 0 496zM112 368C112 376.8 119.2 384 128 384H256C264.8 384 272 376.8 272 368C272 359.2 264.8 352 256 352H128C119.2 352 112 359.2 112 368zM272 304C272 295.2 264.8 288 256 288H128C119.2 288 112 295.2 112 304C112 312.8 119.2 320 128 320H256C264.8 320 272 312.8 272 304zM272 240C272 231.2 264.8 224 256 224H128C119.2 224 112 231.2 112 240C112 248.8 119.2 256 128 256H256C264.8 256 272 248.8 272 240zM128 192H256C264.8 192 272 184.8 272 176C272 167.2 264.8 160 256 160H128C119.2 160 112 167.2 112 176C112 184.8 119.2 192 128 192zM272 112C272 103.2 264.8 96 256 96H128C119.2 96 112 103.2 112 112C112 120.8 119.2 128 128 128H256C264.8 128 272 120.8 272 112z"/>
                 </svg>
             )
         },
-        { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
     ];
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
-        if (id === 'provisions-details') navigate('/dashboard/admin/provisions-details');
+        if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
     };
 

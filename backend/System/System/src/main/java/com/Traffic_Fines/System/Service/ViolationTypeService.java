@@ -21,13 +21,18 @@ public class ViolationTypeService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public Respons saveViolationType(ViolationTypeDTO violationTypeDTO) {
+    public Respons<Integer> saveViolationType(ViolationTypeDTO violationTypeDTO) {
 
         ViolationType violationType = new ViolationType();
 
         violationType.setViolationDescription(violationTypeDTO.getViolationDescription());
         violationType.setSlLawReference(violationTypeDTO.getSlLawReference());
-        violationType.setAmount(violationType.getAmount());
+        violationType.setAmount(violationTypeDTO.getAmount());
+        violationType.setPoints(violationTypeDTO.getPoints());
+        
+        if (violationTypeDTO.getSeverityLevel() != null) {
+            violationType.setSeverityLevel(ViolationType.SeverityLevel.valueOf(violationTypeDTO.getSeverityLevel().toUpperCase()));
+        }
 
         ViolationType savedViolationType = violationTypeRepo.save(violationType);
 
@@ -39,29 +44,34 @@ public class ViolationTypeService {
         return modelMapper.map(violationTypeList,new TypeToken<List<ViolationTypeDTO>>(){}.getType());
     }
 
-    public Respons updateViolationType(int id, ViolationTypeDTO violationTypeDTO) {
+    public Respons<Integer> updateViolationType(int id, ViolationTypeDTO violationTypeDTO) {
         ViolationType violationType = violationTypeRepo.findById(id);
         if(violationType == null){
-            return new Respons(false,"invalid id",null);
+            return new Respons<>(false,"invalid id",null);
         }
 
         violationType.setViolationDescription(violationTypeDTO.getViolationDescription());
         violationType.setSlLawReference(violationTypeDTO.getSlLawReference());
-        violationType.setAmount(violationType.getAmount());
+        violationType.setAmount(violationTypeDTO.getAmount());
+        violationType.setPoints(violationTypeDTO.getPoints());
+
+        if (violationTypeDTO.getSeverityLevel() != null) {
+            violationType.setSeverityLevel(ViolationType.SeverityLevel.valueOf(violationTypeDTO.getSeverityLevel().toUpperCase()));
+        }
 
         ViolationType savedviolationType = violationTypeRepo.save(violationType);
 
-        return new Respons(true,"update violation type",savedviolationType.getId());
+        return new Respons<>(true,"update violation type",savedviolationType.getId());
 
     }
 
-    public Respons deleteViolationType(int id){
+    public Respons<Integer> deleteViolationType(int id){
         ViolationType violationType = violationTypeRepo.findById(id);
         if(violationType == null ){
-            return new Respons(false,"invalid id",null);
+            return new Respons<>(false,"invalid id",null);
         }
         violationTypeRepo.deleteById(id);
-        return new Respons(true,"delete violation type",id);
+        return new Respons<>(true,"delete violation type",id);
     }
 }
 

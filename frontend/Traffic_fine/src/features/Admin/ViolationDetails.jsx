@@ -5,30 +5,68 @@ import {
     Bell, Pencil, Trash2
 } from 'lucide-react';
 
-export default function ProvisionsDetails() {
+export default function ViolationDetails() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [provisions, setProvisions] = useState([]);
+    const [violations, setViolations] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [loading, setLoading] = useState(false); // Make it false initially as we use dummy data
+    const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         fineId: '',
         sectionOfAct: '',
-        provision: '',
-        fineAmount: ''
+        violationDescription: '',
+        amount: '',
+        points: '',
+        severityLevel: 'LOW'
     });
 
-    // We can seed dummy data to look like the PHP screenshot
+    const fetchViolations = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:8080/api/Violation/getViolationTypes', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Failed to fetch violations:', response.status);
+                // If unauthorized or forbidden, maybe log out or show error
+                if (response.status === 401 || response.status === 403) {
+                    alert('Session expired or unauthorized. Please login again.');
+                }
+                return;
+            }
+
+            const textResponse = await response.text();
+            let data;
+            try {
+                data = JSON.parse(textResponse);
+            } catch (err) {
+                console.error("Non-JSON response received:", textResponse);
+                return;
+            }
+
+            if (data.success) {
+                const mappedData = data.data.map(item => ({
+                    fineId: item.id || '',
+                    sectionOfAct: item.slLawReference || '',
+                    violationDescription: item.violationDescription || '',
+                    amount: item.amount || 0,
+                    points: item.points || 0,
+                    severityLevel: item.severityLevel || 'LOW'
+                }));
+                setViolations(mappedData);
+            }
+        } catch (error) {
+            console.error('Error fetching violations:', error);
+        }
+    };
+
     useEffect(() => {
-        setProvisions([
-            { fineId: 100, sectionOfAct: 'Section 32', provision: 'Revenue License to be displayed on motor vehicles and produced when required.', fineAmount: '1500.00' },
-            { fineId: 102, sectionOfAct: 'Section 128B', provision: 'Driving a special purpose vehicle without obtaining a licence.', fineAmount: '1000.00' },
-            { fineId: 103, sectionOfAct: 'Section 128A', provision: 'Failure to obtain authorization to drive a vehicle loaded with chemicals, hazardous waste, &e.', fineAmount: '2000.00' },
-            { fineId: 104, sectionOfAct: 'section 130', provision: 'Failure to have a Licence to drive a specific class of vehicles.', fineAmount: '1000.00' },
-            { fineId: 105, sectionOfAct: 'Section 135', provision: 'Failure to carry a Driving Licence when driving.', fineAmount: '2000.00' },
-        ]);
+        fetchViolations();
     }, []);
 
     const handleLogout = () => {
@@ -59,47 +97,96 @@ export default function ProvisionsDetails() {
                 </svg>
             )
         },
+        { id: 'view-all-drivers', label: 'View All Drivers', icon: <Users size={22} /> },
         { 
-            id: 'provisions-details', 
-            label: 'Provisions Details', 
+            id: 'violation-details', 
+            label: 'Violation Details', 
             icon: (
                 <svg viewBox="0 0 384 512" fill="currentColor" width="22" height="22">
                     <path d="M0 512V48C0 21.49 21.49 0 48 0h288c26.51 0 48 21.49 48 48v464L333.3 459.3C328.6 454.6 322.4 452 316 452S303.4 454.6 298.7 459.3L256 502.1L213.3 459.3C208.6 454.6 202.4 452 196 452S183.4 454.6 178.7 459.3L136 502.1L93.25 459.3C88.63 454.6 82.37 452 76 452S63.37 454.6 58.75 459.3L16 502.1C10.25 507.8 0 503.8 0 496zM112 368C112 376.8 119.2 384 128 384H256C264.8 384 272 376.8 272 368C272 359.2 264.8 352 256 352H128C119.2 352 112 359.2 112 368zM272 304C272 295.2 264.8 288 256 288H128C119.2 288 112 295.2 112 304C112 312.8 119.2 320 128 320H256C264.8 320 272 312.8 272 304zM272 240C272 231.2 264.8 224 256 224H128C119.2 224 112 231.2 112 240C112 248.8 119.2 256 128 256H256C264.8 256 272 248.8 272 240zM128 192H256C264.8 192 272 184.8 272 176C272 167.2 264.8 160 256 160H128C119.2 160 112 167.2 112 176C112 184.8 119.2 192 128 192zM272 112C272 103.2 264.8 96 256 96H128C119.2 96 112 103.2 112 112C112 120.8 119.2 128 128 128H256C264.8 128 272 120.8 272 112z"/>
                 </svg>
             )
         },
-        { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
     ];
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
-        if (id === 'provisions-details') navigate('/dashboard/admin/provisions-details');
-        if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
+        if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
+        if (id === 'view-all-drivers') navigate('/dashboard/admin/view-all-drivers');
     };
 
     const handleInputChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleAddFineTicket = (e) => {
+    const handleAddViolation = async (e) => {
         e.preventDefault();
-        alert("Fine Ticket Provision Added! (Backend integration pending)");
-        setProvisions([...provisions, formData]);
-        setFormData({
-            fineId: '',
-            sectionOfAct: '',
-            provision: '',
-            fineAmount: ''
-        });
+        try {
+            const token = localStorage.getItem('token');
+            const payload = {
+                id: parseInt(formData.fineId) || 0,
+                slLawReference: formData.sectionOfAct,
+                violationDescription: formData.violationDescription,
+                amount: parseInt(formData.amount) || 0,
+                points: parseInt(formData.points) || 0,
+                severityLevel: formData.severityLevel
+            };
+
+            const response = await fetch('http://localhost:8080/api/Violation/saveViolationTypes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            let data;
+            const textResponse = await response.text();
+            try {
+                data = JSON.parse(textResponse);
+            } catch (err) {
+                console.error("Non-JSON response received:", textResponse);
+                alert(`Error: ${response.status} ${response.statusText}. Your session might have expired. Please login again.`);
+                return;
+            }
+            
+            if (response.ok && data.success) {
+                alert("Violation Details Added Successfully!");
+                fetchViolations();
+                setFormData({
+                    fineId: '',
+                    sectionOfAct: '',
+                    violationDescription: '',
+                    amount: '',
+                    points: '',
+                    severityLevel: 'LOW'
+                });
+            } else {
+                alert(`Error: ${data.message || 'Failed to add violation details'}`);
+            }
+        } catch (error) {
+            console.error('Error adding violation:', error);
+            alert('Failed to add violation. Please try again.');
+        }
     };
 
-    const filteredProvisions = (provisions || []).filter(p =>
-        String(p.fineId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(p.sectionOfAct || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(p.provision || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredViolations = (violations || []).filter(v =>
+        String(v.sectionOfAct || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(v.violationDescription || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const getSeverityColor = (severity) => {
+        switch(severity) {
+            case 'LOW': return '#28a745';
+            case 'MEDIUM': return '#ffc107';
+            case 'HIGH': return '#fd7e14';
+            case 'CRITICAL': return '#dc3545';
+            default: return '#6c757d';
+        }
+    };
 
     const sidebarWidth = sidebarOpen ? '220px' : '60px';
 
@@ -128,15 +215,15 @@ export default function ProvisionsDetails() {
                     <button key={item.id} onClick={() => handleNav(item.id)} title={item.label} style={{
                         width: '100%', padding: '14px 0',
                         paddingLeft: sidebarOpen ? '18px' : '0',
-                        color: item.id === 'provisions-details' ? '#ffffff' : 'rgba(255,255,255,0.6)',
-                        backgroundColor: item.id === 'provisions-details' ? '#1a7a7a' : 'transparent',
+                        color: item.id === 'violation-details' ? '#ffffff' : 'rgba(255,255,255,0.6)',
+                        backgroundColor: item.id === 'violation-details' ? '#1a7a7a' : 'transparent',
                         border: 'none', cursor: 'pointer', display: 'flex',
                         alignItems: 'center', justifyContent: sidebarOpen ? 'flex-start' : 'center',
                         gap: '14px', transition: 'all 0.2s', whiteSpace: 'nowrap',
                     }} className="hover:bg-white/10">
                         <span style={{ flexShrink: 0 }}>{item.icon}</span>
                         {sidebarOpen && (
-                            <span style={{ fontSize: '14px', fontWeight: '500', color: item.id === 'provisions-details' ? '#fff' : 'rgba(255,255,255,0.8)' }}>
+                            <span style={{ fontSize: '14px', fontWeight: '500', color: item.id === 'violation-details' ? '#fff' : 'rgba(255,255,255,0.8)' }}>
                                 {item.label}
                             </span>
                         )}
@@ -192,7 +279,7 @@ export default function ProvisionsDetails() {
                 <div style={{ padding: '24px' }}>
 
                     {/* Title + Breadcrumb */}
-                    <h1 style={{ fontSize: '28px', fontWeight: '400', color: '#1e293b', marginBottom: '6px' }}>Provisions Details</h1>
+                    <h1 style={{ fontSize: '28px', fontWeight: '400', color: '#1e293b', marginBottom: '6px' }}>Violation Details</h1>
                     
                     <div style={{ 
                         backgroundColor: '#e9ecef', 
@@ -208,30 +295,27 @@ export default function ProvisionsDetails() {
                             Dashboard
                         </button>
                         <span>/</span>
-                        <span>Provisions Details</span>
+                        <span>Violation Details</span>
                     </div>
 
-                    {/* Add Details Card */}
+                    {/* Add violation Card */}
                     <div style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', overflow: 'hidden', marginBottom: '32px' }}>
                         <div style={{ padding: '14px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <svg viewBox="0 0 384 512" fill="currentColor" width="16" height="16" style={{ color: '#374151' }}>
-                                <path d="M0 512V48C0 21.49 21.49 0 48 0h288c26.51 0 48 21.49 48 48v464L333.3 459.3C328.6 454.6 322.4 452 316 452S303.4 454.6 298.7 459.3L256 502.1L213.3 459.3C208.6 454.6 202.4 452 196 452S183.4 454.6 178.7 459.3L136 502.1L93.25 459.3C88.63 454.6 82.37 452 76 452S63.37 454.6 58.75 459.3L16 502.1C10.25 507.8 0 503.8 0 496zM112 368C112 376.8 119.2 384 128 384H256C264.8 384 272 376.8 272 368C272 359.2 264.8 352 256 352H128C119.2 352 112 359.2 112 368zM272 304C272 295.2 264.8 288 256 288H128C119.2 288 112 295.2 112 304C112 312.8 119.2 320 128 320H256C264.8 320 272 312.8 272 304zM272 240C272 231.2 264.8 224 256 224H128C119.2 224 112 231.2 112 240C112 248.8 119.2 256 128 256H256C264.8 256 272 248.8 272 240zM128 192H256C264.8 192 272 184.8 272 176C272 167.2 264.8 160 256 160H128C119.2 160 112 167.2 112 176C112 184.8 119.2 192 128 192zM272 112C272 103.2 264.8 96 256 96H128C119.2 96 112 103.2 112 112C112 120.8 119.2 128 128 128H256C264.8 128 272 120.8 272 112z"/>
-                            </svg>
-                            <span style={{ fontSize: '15px', color: '#1f2937', fontWeight: 600 }}>Add a Provision Details</span>
+                             <Pencil size={16} />
+                            <span style={{ fontSize: '15px', color: '#1f2937', fontWeight: 600 }}>Add Violation Details</span>
                         </div>
 
                         <div style={{ padding: '2rem' }}>
-                            <form onSubmit={handleAddFineTicket} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                                {/* Row 1 */}
+                            <form onSubmit={handleAddViolation} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                                 <div style={{ display: 'flex', gap: '2rem' }}>
                                     <div style={{ flex: 1 }}>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Provision ID</label>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Fine ID</label>
                                         <input 
                                             type="text" 
                                             name="fineId" 
                                             value={formData.fineId} 
                                             onChange={handleInputChange} 
-                                            placeholder="Provision ID" 
+                                            placeholder="Ex: 100" 
                                             style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
                                         />
                                     </div>
@@ -246,39 +330,61 @@ export default function ProvisionsDetails() {
                                             style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
                                         />
                                     </div>
-                                </div>
-
-                                {/* Row 2 */}
-                                <div style={{ display: 'flex', gap: '2rem' }}>
                                     <div style={{ flex: 1 }}>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Provision</label>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Violation Description</label>
                                         <input 
                                             type="text" 
-                                            name="provision" 
-                                            value={formData.provision} 
+                                            name="violationDescription" 
+                                            value={formData.violationDescription} 
                                             onChange={handleInputChange} 
-                                            placeholder="Provision" 
-                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
-                                        />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Fine Amount</label>
-                                        <input 
-                                            type="number" 
-                                            name="fineAmount" 
-                                            value={formData.fineAmount} 
-                                            onChange={handleInputChange} 
-                                            placeholder="Fine Amount" 
+                                            placeholder="Violation Description" 
                                             style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
                                         />
                                     </div>
                                 </div>
 
-                                {/* Submit Button */}
+                                <div style={{ display: 'flex', gap: '2rem' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Fine Amount (LKR)</label>
+                                        <input 
+                                            type="number" 
+                                            name="amount" 
+                                            value={formData.amount} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Ex: 2000" 
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Penalty Points</label>
+                                        <input 
+                                            type="number" 
+                                            name="points" 
+                                            value={formData.points} 
+                                            onChange={handleInputChange} 
+                                            placeholder="Ex: 5" 
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
+                                        />
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '1rem', color: '#212529' }}>Severity Level</label>
+                                        <select 
+                                            name="severityLevel" 
+                                            value={formData.severityLevel} 
+                                            onChange={handleInputChange}
+                                            style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }}
+                                        >
+                                            <option value="LOW">LOW</option>
+                                            <option value="MEDIUM">MEDIUM</option>
+                                            <option value="HIGH">HIGH</option>
+                                            <option value="CRITICAL">CRITICAL</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <button type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#0d6efd', color: '#fff', border: '1px solid #0d6efd', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, cursor: 'pointer', transition: 'all .15s ease-in-out' }} onMouseOver={(e) => e.target.style.backgroundColor='#0b5ed7'} onMouseOut={(e) => e.target.style.backgroundColor='#0d6efd'}>
-                                        <svg viewBox="0 0 512 512" fill="white" width="14" height="14"><path d="M256 512c141.4 0 256-114.6 256-256S397.4 0 256 0 0 114.6 0 256s114.6 256 256 256zm-16-160v-80H160c-8.8 0-16-7.2-16-16v-16c0-8.8 7.2-16 16-16h80v-80c0-8.8 7.2-16 16-16h16c8.8 0 16 7.2 16 16v80h80c8.8 0 16 7.2 16 16v16c0 8.8-7.2 16-16 16h-80v80c0 8.8-7.2 16-16 16h-16c-8.8 0-16-7.2-16-16z"/></svg>
-                                        Add Fine Ticket
+                                    <button type="submit" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#0d6efd', color: '#fff', border: '1px solid #0d6efd', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, cursor: 'pointer', transition: 'all .15s ease-in-out' }}>
+                                        Add Violation
                                     </button>
                                 </div>
                             </form>
@@ -288,90 +394,57 @@ export default function ProvisionsDetails() {
                     {/* Table Card */}
                     <div style={{ backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.07)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
 
-                        {/* Card Header */}
                         <div style={{ padding: '14px 20px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" style={{ color: '#1f2937' }}>
-                                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
-                            </svg>
-                            <span style={{ fontSize: '15px', color: '#1f2937', fontWeight: 600 }}>All Fine Tickets Details</span>
+                             <Menu size={16} />
+                            <span style={{ fontSize: '15px', color: '#1f2937', fontWeight: 600 }}>All Violation Details</span>
                         </div>
 
-                        {/* Export Buttons */}
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                {[
-                                    { label: 'CSV', color: '#007bff', icon: '📄' },
-                                    { label: 'Excel', color: '#28a745', icon: '📊' },
-                                    { label: 'PDF', color: '#dc3545', icon: '📕' },
-                                    { label: 'Print', color: '#343a40', icon: '🖨️' },
-                                ].map(btn => (
-                                    <button key={btn.label} style={{
-                                        backgroundColor: btn.color, color: 'white', border: 'none',
-                                        borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem',
-                                        fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
-                                    }} className="hover:opacity-90 transition-opacity">
-                                        <span style={{ fontSize: '14px', marginRight: '4px' }}>{btn.icon}</span> {btn.label}
-                                    </button>
+                                {['CSV', 'Excel', 'PDF', 'Print'].map(label => (
+                                    <button key={label} style={{ background: '#6c757d', color: 'white', border: 'none', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>{label}</button>
                                 ))}
                             </div>
 
-                            {/* Search */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <span style={{ fontSize: '14px', color: '#212529' }}>Search:</span>
-                                <div style={{ position: 'relative' }}>
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={e => setSearchTerm(e.target.value)}
-                                        style={{
-                                            border: '1px solid #ced4da', borderRadius: '0.25rem',
-                                            padding: '0.25rem 0.5rem', fontSize: '0.875rem', outline: 'none',
-                                        }}
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    style={{ border: '1px solid #ced4da', borderRadius: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.875rem', outline: 'none' }}
+                                />
                             </div>
                         </div>
 
-                        {/* Table */}
                         <div style={{ overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', borderBottom: '1px solid #dee2e6' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
                                 <thead>
                                     <tr style={{ backgroundColor: '#ccc', color: '#000' }}>
-                                        {['Action ⇅', 'Fine ID ⇅', 'Section of Act ⇅', 'Provision ⇅', 'Fine Amount ⇅'].map(h => (
-                                            <th key={h} style={{
-                                                padding: '12px 16px', textAlign: 'left', fontWeight: '700',
-                                                borderBottom: '2px solid #dee2e6', whiteSpace: 'nowrap'
-                                            }}>{h}</th>
+                                        {['Action ⇅', 'Fine ID ⇅', 'Section ⇅', 'Violation Description ⇅', 'Points ⇅', 'Severity ⇅', 'Amount ⇅'].map(h => (
+                                            <th key={h} style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '700', borderBottom: '2px solid #dee2e6' }}>{h}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {loading ? (
-                                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading tracking details...</td></tr>
-                                    ) : filteredProvisions.length === 0 ? (
-                                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>No provisions found</td></tr>
-                                    ) : filteredProvisions.map((item, idx) => (
+                                    {filteredViolations.map((v, idx) => (
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                                    {/* Edit */}
-                                                    <button onClick={() => { alert('Edit modal triggering pending backend integration') }}
-                                                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer' }}
-                                                        title="Edit">
-                                                        <Pencil size={15} />
-                                                    </button>
-                                                    {/* Delete */}
-                                                    <button onClick={() => { alert('Delete modal triggering pending backend integration') }}
-                                                        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '6px 10px', cursor: 'pointer' }}
-                                                        title="Delete">
-                                                        <Trash2 size={15} />
-                                                    </button>
+                                                    <button style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '6px' }}><Pencil size={14} /></button>
+                                                    <button style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '6px' }}><Trash2 size={14} /></button>
                                                 </div>
                                             </td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.fineId}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.sectionOfAct}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.provision}</td>
-                                            <td style={{ padding: '10px 16px', color: '#212529' }}>{item.fineAmount}</td>
+                                            <td style={{ padding: '10px 16px' }}>{v.fineId}</td>
+                                            <td style={{ padding: '10px 16px' }}>{v.sectionOfAct}</td>
+                                            <td style={{ padding: '10px 16px' }}>{v.violationDescription}</td>
+                                            <td style={{ padding: '10px 16px', fontWeight: 'bold' }}>{v.points}</td>
+                                            <td style={{ padding: '10px 16px' }}>
+                                                <span style={{ backgroundColor: getSeverityColor(v.severityLevel), color: v.severityLevel === 'MEDIUM' ? '#000' : '#fff', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}>
+                                                    {v.severityLevel}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '10px 16px' }}>{v.amount}</td>
                                         </tr>
                                     ))}
                                 </tbody>

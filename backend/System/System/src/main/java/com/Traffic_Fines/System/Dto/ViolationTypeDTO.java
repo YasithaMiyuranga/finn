@@ -19,6 +19,8 @@ import java.util.List;
 @Data
 public class ViolationTypeDTO {
 
+    private int id;
+
     @NotBlank(message = "Violation description is required")
     private String violationDescription;
 
@@ -30,6 +32,7 @@ public class ViolationTypeDTO {
     @Min(value = 0, message = "Amount cannot be a negative number")
     private int amount;
 
-
-
+    private int points;
+    
+    private String severityLevel;
 }
