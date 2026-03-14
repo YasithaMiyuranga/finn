@@ -45,7 +45,12 @@ public class Police_OfficersService {
         policeOfficers.setAddress(police_officersDTO.getAddress());
         policeOfficers.setDistrict(police_officersDTO.getDistrict());
         policeOfficers.setPoliceStation(police_officersDTO.getPoliceStation());
-
+        policeOfficers.setCourt(police_officersDTO.getCourt());
+        if(police_officersDTO.getRegisteredDate() != null) {
+            policeOfficers.setRegisteredDate(police_officersDTO.getRegisteredDate());
+        } else {
+            policeOfficers.setRegisteredDate(java.time.LocalDate.now());
+        }
 
         policeOfficers.setUser(user);
         Police_Officers savedPoliceOfficer = policeOfficersRepo.save(policeOfficers);
@@ -72,6 +77,10 @@ public class Police_OfficersService {
         police_officers.setAddress(police_officersDTO.getAddress());
         police_officers.setDistrict(police_officersDTO.getDistrict());
         police_officers.setPoliceStation(police_officersDTO.getPoliceStation());
+        police_officers.setCourt(police_officersDTO.getCourt());
+        if(police_officersDTO.getRegisteredDate() != null) {
+            police_officers.setRegisteredDate(police_officersDTO.getRegisteredDate());
+        }
 
         Police_Officers savedPoliceOfficer = policeOfficersRepo.save(police_officers);
 
@@ -82,10 +91,10 @@ public class Police_OfficersService {
     public Respons deletePolice_Officers(int id){
         Police_Officers police_officers = policeOfficersRepo.findById(id);
         if(police_officers == null ){
-            return new Respons(false,"invalid id",null);
+            return new Respons<>(false,"invalid id",null);
         }
         policeOfficersRepo.deleteById(id);
-        return new Respons(true,"delete police_officers",id);
+        return new Respons<>(true,"delete police_officers",id);
     }
 }
 
