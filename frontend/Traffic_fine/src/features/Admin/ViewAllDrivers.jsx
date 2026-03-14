@@ -56,12 +56,21 @@ export default function ViewAllDrivers() {
             id: 'dashboard', label: 'Dashboard',
             icon: <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
         },
-        { id: 'add-driver', label: 'Add Driver', icon: <UserPlus size={22} /> },
+        { 
+            id: 'add-traffic-officer', 
+            label: 'Add Traffic Officer', 
+            icon: (
+                <svg viewBox="0 0 512 512" fill="currentColor" width="22" height="22">
+                    <path d="M0 128C0 92.7 28.7 64 64 64H448c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM176 256a64 64 0 1 0 0-128 64 64 0 1 0 0 128zM80 352c0 35.3 28.7 64 64 64H208c35.3 0 64-28.7 64-64v-16c0-17.7-14.3-32-32-32H112c-17.7 0-32 14.3-32 32v16zM320 160c-8.8 0-16 7.2-16 16s7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H320zm0 64c-8.8 0-16 7.2-16 16s7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H320zm0 64c-8.8 0-16 7.2-16 16s7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H320z"/>
+                </svg>
+            )
+        },
         { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
     ];
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
+        if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
     };
 
