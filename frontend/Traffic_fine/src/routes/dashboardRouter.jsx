@@ -18,6 +18,11 @@ import ViewAllDrivers from '../features/Admin/ViewAllDrivers';
 import AddTrafficOfficer from '../features/Admin/AddTrafficOfficer';
 import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
 import ViolationDetails from '../features/Admin/ViolationDetails';
+import PaidFineTickets from '../features/Admin/PaidFineTickets';
+import PendingFineTickets from '../features/Admin/PendingFineTickets';
+import PoliceOfficerDashboard from '../features/PoliceOfficer/PoliceOfficerDashboard';
+import AddNewFine from '../features/PoliceOfficer/AddNewFine';
+import ViewReportedFine from '../features/PoliceOfficer/ViewReportedFine';
 
 const DashboardRouter = () => {
     return (
@@ -32,6 +37,11 @@ const DashboardRouter = () => {
             <Route path="/admin/view-all-traffic-officers" element={<ViewAllTrafficOfficers />} />
             <Route path="/admin/view-all-drivers" element={<ViewAllDrivers />} />
             <Route path="/admin/violation-details" element={<ViolationDetails />} />
+            <Route path="/admin/paid-fine-tickets" element={<PaidFineTickets />} />
+            <Route path="/admin/pending-fine-tickets" element={<PendingFineTickets />} />
+            <Route path="/policeofficer" element={<PoliceOfficerDashboard />} />
+            <Route path="/policeofficer/add-new-fine" element={<AddNewFine />} />
+            <Route path="/policeofficer/view-reported-fine" element={<ViewReportedFine />} />
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />

@@ -25,6 +25,7 @@ public class ViolationTypeService {
 
         ViolationType violationType = new ViolationType();
 
+        violationType.setId(violationTypeDTO.getId());
         violationType.setViolationDescription(violationTypeDTO.getViolationDescription());
         violationType.setSlLawReference(violationTypeDTO.getSlLawReference());
         violationType.setAmount(violationTypeDTO.getAmount());

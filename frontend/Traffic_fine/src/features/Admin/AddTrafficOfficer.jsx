@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, UserPlus, Users, ChevronDown, LogOut,
-    Bell
+    Bell, CheckSquare, Pause
 } from 'lucide-react';
 
 export default function AddTrafficOfficer() {
@@ -58,6 +58,8 @@ export default function AddTrafficOfficer() {
                 </svg>
             )
         },
+        { id: 'paid-fine-tickets', label: 'Paid Fine Tickets', icon: <CheckSquare size={22} /> },
+        { id: 'pending-fine-tickets', label: 'Pending Fine Tickets', icon: <Pause size={22} /> },
     ];
 
     const handleNav = (id) => {
@@ -66,6 +68,8 @@ export default function AddTrafficOfficer() {
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
         if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
+        if (id === 'paid-fine-tickets') navigate('/dashboard/admin/paid-fine-tickets');
+        if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
     };
 
     const handleInputChange = (e) => {

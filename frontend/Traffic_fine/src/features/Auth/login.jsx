@@ -87,7 +87,7 @@ export default function Login() {
           } else if (role === 'USERS') {
             navigate('/dashboard/user');
           } else if (role === 'POLICEOFFICERS') {
-            navigate('/police/dashboard');
+            navigate('/dashboard/policeofficer');
           } else if (role === 'ADMIN') {
             navigate('/dashboard/admin');
           } else {
