@@ -32,6 +32,7 @@ export default function PoliceOfficerDashboard() {
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/policeofficer');
         if (id === 'add-new-fine') navigate('/dashboard/policeofficer/add-new-fine');
+        if (id === 'view-reported-fine') navigate('/dashboard/policeofficer/view-reported-fine');
         // Add more routing later
     };
 
