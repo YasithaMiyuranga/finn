@@ -20,6 +20,7 @@ import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
 import ViolationDetails from '../features/Admin/ViolationDetails';
 import PaidFineTickets from '../features/Admin/PaidFineTickets';
 import PendingFineTickets from '../features/Admin/PendingFineTickets';
+import PoliceOfficerDashboard from '../features/PoliceOfficer/PoliceOfficerDashboard';
 
 const DashboardRouter = () => {
     return (
@@ -36,6 +37,7 @@ const DashboardRouter = () => {
             <Route path="/admin/violation-details" element={<ViolationDetails />} />
             <Route path="/admin/paid-fine-tickets" element={<PaidFineTickets />} />
             <Route path="/admin/pending-fine-tickets" element={<PendingFineTickets />} />
+            <Route path="/policeofficer" element={<PoliceOfficerDashboard />} />
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />
