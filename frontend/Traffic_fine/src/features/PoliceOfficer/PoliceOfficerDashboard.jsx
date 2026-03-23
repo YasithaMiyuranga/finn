@@ -14,12 +14,16 @@ export default function PoliceOfficerDashboard() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Some dummy dat for Police Officer
-    const officerId = "P500000";
-    const policeStation = "Kegalla";
-    const court = "Kegalla";
-    const reportedFineCount = 1;
-    const reportedFineAmount = 3000.00;
+    const [officerInfo, setOfficerInfo] = useState({
+        officerId: "Loading...",
+        policeStation: "Loading...",
+        court: "Loading..."
+    });
+
+    const [stats, setStats] = useState({
+        reportedFineCount: 0,
+        reportedFineAmount: 0.00
+    });
 
     const navItems = [
         { id: 'dashboard', label: 'Dashboard', icon: <Gauge size={22} /> },
@@ -41,35 +45,100 @@ export default function PoliceOfficerDashboard() {
         navigate('/auth/login');
     };
 
-    const countData = [
-        { name: 'January', c: 0 },
-        { name: 'February', c: 0 },
-        { name: 'March', c: 1 },
-        { name: 'April', c: 0 },
-        { name: 'May', c: 0 },
-        { name: 'June', c: 0 },
-        { name: 'July', c: 0 },
-        { name: 'August', c: 0 },
-        { name: 'September', c: 0 },
-        { name: 'October', c: 0 },
-        { name: 'November', c: 0 },
-        { name: 'December', c: 0 },
+    const initChartData = () => [
+        { name: 'January', c: 0, amt: 0 },
+        { name: 'February', c: 0, amt: 0 },
+        { name: 'March', c: 0, amt: 0 },
+        { name: 'April', c: 0, amt: 0 },
+        { name: 'May', c: 0, amt: 0 },
+        { name: 'June', c: 0, amt: 0 },
+        { name: 'July', c: 0, amt: 0 },
+        { name: 'August', c: 0, amt: 0 },
+        { name: 'September', c: 0, amt: 0 },
+        { name: 'October', c: 0, amt: 0 },
+        { name: 'November', c: 0, amt: 0 },
+        { name: 'December', c: 0, amt: 0 },
     ];
 
-    const amountData = [
-        { name: 'January', amt: 0 },
-        { name: 'February', amt: 0 },
-        { name: 'March', amt: 3000 },
-        { name: 'April', amt: 0 },
-        { name: 'May', amt: 0 },
-        { name: 'June', amt: 0 },
-        { name: 'July', amt: 0 },
-        { name: 'August', amt: 0 },
-        { name: 'September', amt: 0 },
-        { name: 'October', amt: 0 },
-        { name: 'November', amt: 0 },
-        { name: 'December', amt: 0 },
-    ];
+    const [chartData, setChartData] = useState(initChartData());
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                if (!userId || !token) return;
+
+                // 1. Fetch Officer profile
+                let officerDbId = null;
+                const offRes = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (offRes.ok) {
+                    const offData = await offRes.json();
+                    const officers = offData.data || [];
+                    const me = officers.find(o => 
+                        String(o.userId) === String(userId) || 
+                        String(o.user) === String(userId) || 
+                        (o.user && String(o.user.id || o.user.userId || o.user) === String(userId)) ||
+                        String(o.id) === String(userId)
+                    );
+                    if (me) {
+                        officerDbId = me.id;
+                        setOfficerInfo({
+                            officerId: me.policeid || me.id || "N/A",
+                            policeStation: me.policeStation || "N/A",
+                            court: me.court || "N/A"
+                        });
+                    }
+                }
+
+                // 2. Fetch traffic fines to calculate stats & charts
+                const res = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (res.ok && officerDbId) {
+                    const data = await res.json();
+                    let allFines = [];
+                    if (Array.isArray(data.data)) allFines = data.data;
+                    else if (Array.isArray(data)) allFines = data;
+
+                    let myFines = allFines.filter(f => {
+                        const fOfficerId = f.policeOfficer?.id || f.policeOfficer;
+                        return String(fOfficerId) === String(officerDbId);
+                    });
+
+                    let totalAmt = 0;
+                    let cData = initChartData();
+
+                    myFines.forEach(f => {
+                        const amt = parseFloat(f.fineAmount) || 0;
+                        totalAmt += amt;
+
+                        if (f.issueDate) {
+                            const dateObj = new Date(f.issueDate);
+                            const monthIdx = dateObj.getMonth();
+                            if (monthIdx >= 0 && monthIdx < 12) {
+                                cData[monthIdx].c += 1;
+                                cData[monthIdx].amt += amt;
+                            }
+                        }
+                    });
+
+                    setStats({
+                        reportedFineCount: myFines.length,
+                        reportedFineAmount: totalAmt
+                    });
+                    setChartData(cData);
+                }
+            } catch (err) {
+                console.error("Dashboard fetch error:", err);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
 
     const sidebarWidth = sidebarOpen ? '250px' : '65px';
 
@@ -168,7 +237,7 @@ export default function PoliceOfficerDashboard() {
                         borderRadius: '4px', fontSize: '12px', fontWeight: '700',
                         marginBottom: '20px', border: '1px solid #dee2e6' 
                     }}>
-                        Police Officer ID : <span style={{ color: '#0d6efd' }}>{officerId}</span>
+                        Police Officer ID : <span style={{ color: '#0d6efd' }}>{officerInfo.officerId}</span>
                     </div>
 
                     {/* Stats Cards */}
@@ -177,28 +246,28 @@ export default function PoliceOfficerDashboard() {
                         {/* Reported Fine Count */}
                         <div style={{ backgroundColor: '#d9534f', color: 'white', borderRadius: '10px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 12px rgba(217, 83, 79, 0.2)' }}>
                             <div style={{ fontSize: '40px', marginBottom: '10px' }}><Flag size={48} /></div>
-                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{reportedFineCount}</h3>
+                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{stats.reportedFineCount}</h3>
                             <p style={{ fontSize: '16px', margin: 0, opacity: 0.9 }}>Reported Fine Count</p>
                         </div>
 
                         {/* Reported Fine Amount */}
                         <div style={{ backgroundColor: '#e67e22', color: 'white', borderRadius: '10px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 12px rgba(230, 126, 34, 0.2)' }}>
                             <div style={{ fontSize: '40px', marginBottom: '10px' }}><svg viewBox="0 0 512 512" width="48" height="48" fill="currentColor"><path d="M512 80c0 18-14.3 34.6-38.4 48-29.1 16.1-72.5 27.5-122.3 30.9-3.7-1.8-7.4-3.5-11.3-5C300.6 137.4 248.2 128 192 128c-8.3 0-16.4 .2-24.5 .6l-1.1-.6C142.3 114.6 128 98 128 80c0-44.2 86-80 192-80S512 35.8 512 80zM160.7 161.1c10.2-.7 20.7-1.1 31.3-1.1c62.2 0 117.4 12.3 152.5 31.4C369.3 204.9 384 221.7 384 240c0 4-.7 7.9-2.1 11.7c-4.6 13.2-17 25.3-35 35.5c0 0 0 0 0 0c-.1 .1-.3 .1-.4 .2l0 0 0 0c-.3 .2-.6 .3-.9 .5c-35 19.4-90.8 32-153.6 32c-59.6 0-112.9-11.3-148.2-29.1c-1.9-.9-3.7-1.9-5.5-2.9C14.3 274.6 0 258 0 240c0-34.8 53.4-64.5 128-75.4c10.5-1.5 21.4-2.7 32.7-3.5zM416 240c0-21.9-10.6-39.9-24.1-53.4c28.3-4.4 54.2-11.4 76.2-20.5c16.3-6.8 31.5-15.2 43.9-25.5V176c0 19.3-16.5 37.1-43.8 50.9c-14.6 7.4-32.4 13.7-52.4 18.5c.1-1.8 .2-3.5 .2-5.3zm-32 96c0 18-14.3 34.6-38.4 48c-1.8 1-3.6 1.9-5.5 2.9C304.9 404.7 251.6 416 192 416c-62.8 0-118.6-12.6-153.6-32C14.3 370.6 0 354 0 336V300.6c12.5 10.3 27.6 18.7 43.9 25.5C83.4 342.6 135.8 352 192 352s108.6-9.4 148.1-25.9c16.3-6.8 31.5-15.2 43.9-25.5V336zm0 96c0 18-14.3 34.6-38.4 48c-1.8 1-3.6 1.9-5.5 2.9C304.9 500.7 251.6 512 192 512c-62.8 0-118.6-12.6-153.6-32C14.3 466.6 0 450 0 432V396.6c12.5 10.3 27.6 18.7 43.9 25.5C83.4 438.6 135.8 448 192 448s108.6-9.4 148.1-25.9c16.3-6.8 31.5-15.2 43.9-25.5V432zM416 278.1c53.4 11.1 96 30.5 96 53.9V368c0 19.3-16.5 37.1-43.8 50.9c-14.6 7.4-32.4 13.7-52.4 18.5c.1-1.8 .2-3.5 .2-5.3c0-21.9-10.6-39.9-24.1-53.4c28.3-4.4 54.2-11.4 76.2-20.5c16.3-6.8 31.5-15.2 43.9-25.5V299.8c-17 11.1-38.7 20-63.5 25.8c-10.4 2.4-21.2 4.6-32.3 6.4v-42.6c13.8-3.4 27.1-7.3 39.8-11.4z"/></svg></div>
-                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{reportedFineAmount.toFixed(2)}</h3>
+                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{stats.reportedFineAmount.toFixed(2)}</h3>
                             <p style={{ fontSize: '16px', margin: 0, opacity: 0.9 }}>Reported Fine Amount (LKR)</p>
                         </div>
 
                         {/* Police Station */}
                         <div style={{ backgroundColor: '#20c997', color: 'white', borderRadius: '10px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 12px rgba(32, 201, 151, 0.2)' }}>
                             <div style={{ fontSize: '40px', marginBottom: '10px' }}><svg viewBox="0 0 512 512" width="48" height="48" fill="currentColor"><path d="M480 32c0-17.7-14.3-32-32-32H64C46.3 0 32 14.3 32 32V640H480V32zM352 160H160c-17.7 0-32-14.3-32-32s14.3-32 32-32h192c17.7 0 32 14.3 32 32s-14.3 32-32 32zM160 224H352c17.7 0 32 14.3 32 32s-14.3 32-32 32H160c-17.7 0-32-14.3-32-32s14.3-32 32-32zm192 128H160c-17.7 0-32-14.3-32-32s14.3-32 32-32h192c17.7 0 32 14.3 32 32s-14.3 32-32 32zM160 480H352c17.7 0 32 14.3 32 32s-14.3 32-32 32H160c-17.7 0-32-14.3-32-32s14.3-32 32-32z"/></svg></div>
-                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{policeStation}</h3>
+                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{officerInfo.policeStation}</h3>
                             <p style={{ fontSize: '16px', margin: 0, opacity: 0.9 }}>Police Station</p>
                         </div>
 
                         {/* Court */}
                         <div style={{ backgroundColor: '#6f42c1', color: 'white', borderRadius: '10px', padding: '24px', textAlign: 'center', boxShadow: '0 4px 12px rgba(111, 66, 193, 0.2)' }}>
                             <div style={{ fontSize: '40px', marginBottom: '10px' }}><svg viewBox="0 0 512 512" width="48" height="48" fill="currentColor"><path d="M128 320c-17.7 0-32-14.3-32-32s14.3-32 32-32h256c17.7 0 32 14.3 32 32s-14.3 32-32 32H128zm0 64h256c17.7 0 32 14.3 32 32s-14.3 32-32 32H128c-17.7 0-32-14.3-32-32s14.3-32 32-32zm0-192c-17.7 0-32-14.3-32-32s14.3-32 32-32h256c17.7 0 32 14.3 32 32s-14.3 32-32 32H128zM31.2 55.4l128 64c9.1 4.5 9.1 17.5 0 22.1l-128 64c-12.7 6.4-27.5-2.8-27.5-16.7V72.1c0-13.9 14.8-23.1 27.5-16.7zM424.3 72l128 64c12.7 6.4 12.7 25 0 31.4l-128 64c-11.8 5.9-25.5-2.8-25.5-15.7V87.7c0-12.9 13.7-21.6 25.5-15.7z" /></svg></div>
-                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{court}</h3>
+                            <h3 style={{ fontSize: '36px', fontWeight: 'bold', margin: '0 0 10px 0' }}>{officerInfo.court}</h3>
                             <p style={{ fontSize: '16px', margin: 0, opacity: 0.9 }}>Court</p>
                         </div>
                     </div>
@@ -210,10 +279,10 @@ export default function PoliceOfficerDashboard() {
                         </div>
                         <div style={{ padding: '24px', height: '350px' }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={countData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <CartesianGrid stroke="#e5e5e5" />
                                     <XAxis dataKey="name" axisLine={{ stroke: '#cccccc' }} tickLine={{ stroke: '#cccccc' }} tick={{ fontSize: 12, fill: '#64748b' }} />
-                                    <YAxis axisLine={{ stroke: '#cccccc' }} tickLine={{ stroke: '#cccccc' }} tick={{ fontSize: 12, fill: '#64748b' }} ticks={[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]} />
+                                    <YAxis axisLine={{ stroke: '#cccccc' }} tickLine={{ stroke: '#cccccc' }} tick={{ fontSize: 12, fill: '#64748b' }} />
                                     <Tooltip />
                                     <Area type="monotone" dataKey="c" stroke="#d9534f" strokeWidth={2} dot={{ fill: '#d9534f', r: 3 }} activeDot={{ r: 5 }} fill="#d9534f" fillOpacity={0.8} />
                                 </AreaChart>
@@ -228,10 +297,10 @@ export default function PoliceOfficerDashboard() {
                         </div>
                         <div style={{ padding: '24px', height: '350px' }}>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={amountData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                <BarChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <CartesianGrid stroke="#e5e5e5" />
                                     <XAxis dataKey="name" axisLine={{ stroke: '#cccccc' }} tickLine={{ stroke: '#cccccc' }} tick={{ fontSize: 12, fill: '#64748b' }} />
-                                    <YAxis axisLine={{ stroke: '#cccccc' }} tickLine={{ stroke: '#cccccc' }} tick={{ fontSize: 12, fill: '#64748b' }} ticks={[0, 500, 1000, 1500, 2000, 2500, 3000]} />
+                                    <YAxis axisLine={{ stroke: '#cccccc' }} tickLine={{ stroke: '#cccccc' }} tick={{ fontSize: 12, fill: '#64748b' }} />
                                     <Tooltip cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
                                     <Bar dataKey="amt" fill="#e67e22" radius={0} barSize={40} />
                                 </BarChart>
