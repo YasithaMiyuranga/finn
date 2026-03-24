@@ -1,6 +1,6 @@
 package com.Traffic_Fines.System.Entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -72,26 +72,33 @@ public class Driver {
         Male, Female, Other
     }
 
+    @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<TrafficFine> trafficFine;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<Payment> payments;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<PendingFine> pendingFines;
 
     // New relationships for enhanced features
+    @JsonIgnore
     @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL)
     private DriverPoints driverPoints;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<EmailNotification> emailNotifications;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "reporterDriver", cascade = CascadeType.ALL)
     private List<GrievanceReport> grievanceReports;
 }
