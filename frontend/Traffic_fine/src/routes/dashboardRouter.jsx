@@ -11,6 +11,8 @@ import FinePaymentPage from '../features/Payment/FinePaymentPage';
 // Import role-based dashboards
 import DriverDashboard from '../features/Driver/DriverDashboard';
 import CompleteProfile from '../features/Driver/CompleteProfile';
+import PendingFine from '../features/Driver/pages/PendingFine';
+import PaidFine from '../features/Driver/pages/PaidFine';
 import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
 import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
@@ -30,6 +32,8 @@ const DashboardRouter = () => {
             {/* Role-based Dashboard Routes */}
             <Route path="/driver" element={<DriverDashboard />} />
             <Route path="/driver/complete-profile" element={<CompleteProfile />} />
+            <Route path="/driver/pending-fine" element={<PendingFine />} />
+            <Route path="/driver/paid-fine" element={<PaidFine />} />
             <Route path="/user" element={<GeneralUserDashboard />} />
             <Route path="/oic" element={<PoliceOICDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />

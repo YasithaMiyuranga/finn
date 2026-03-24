@@ -29,6 +29,8 @@ export default function DriverDashboard() {
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/driver');
+        if (id === 'pending-fine') navigate('/dashboard/driver/pending-fine');
+        if (id === 'paid-fine') navigate('/dashboard/driver/paid-fine');
         // Add more routing later based on user requests
     };
 
