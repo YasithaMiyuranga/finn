@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     Menu, Settings, Megaphone, Hourglass, ListOrdered, 
     Coins, LayoutDashboard, FileText, CreditCard, 
-    Bell, User, ChevronDown, LogOut, Info
+    Bell, User, ChevronDown, LogOut
 } from 'lucide-react';
 
-export default function PendingFine() {
+export default function ViolationDetails() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,7 +26,6 @@ export default function PendingFine() {
         if (id === 'pending-fine') navigate('/dashboard/driver/pending-fine');
         if (id === 'paid-fine') navigate('/dashboard/driver/paid-fine');
         if (id === 'violation-details') navigate('/dashboard/driver/violation-details');
-        // Add more routes as they are created
     };
 
     const handleLogout = () => {
@@ -37,16 +36,16 @@ export default function PendingFine() {
     };
 
     // Dummy data mimicking the PHP table screenshot
-    const pendingFines = [
-        {
-            refNo: "10025",
-            provision: "108",
-            vehicleNo: "t5555",
-            issueDate: "2026-03-12",
-            expireDate: "2026-04-02",
-            courtDate: "2026-04-02",
-            amount: "3000.00"
-        }
+    const violations = [
+        { id: "100", act: "Section 32", provision: "Revenue License to be displayed on motor vehicles and produced when required.", amount: "1500.00" },
+        { id: "102", act: "Section 128B", provision: "Driving a special purpose vehicle without obtaining a licence.", amount: "1000.00" },
+        { id: "103", act: "Section 128A", provision: "Failure to obtain authorization to drive a vehicle loaded with chemicals, hazardous waste, &e.", amount: "2000.00" },
+        { id: "104", act: "section 130", provision: "Failure to have a Licence to drive a specific class of vehiceles.", amount: "1000.00" },
+        { id: "105", act: "Section 135", provision: "Failure to carry a Driving Licence when driving.", amount: "2000.00" },
+        { id: "106", act: "Section 139A", provision: "Driving a special purpose vehicle without obtaining a licence", amount: "2000.00" },
+        { id: "107", act: "Section 148", provision: "Failure to comply with road rules.", amount: "2000.00" },
+        { id: "108", act: "Section 140 and 141", provision: "Not compliance with Speed limits provisions.", amount: "3000.00" },
+        { id: "109", act: "Section 155A", provision: "Excessive emission of smoke &c.", amount: "1000.00" },
     ];
 
     return (
@@ -115,11 +114,11 @@ export default function PendingFine() {
                                     gap: '15px', 
                                     whiteSpace: 'nowrap', 
                                     border: 'none',
-                                    backgroundColor: item.id === 'pending-fine' ? '#17a2b8' : 'transparent',
-                                    color: item.id === 'pending-fine' ? '#ffffff' : '#b2c3d4',
+                                    backgroundColor: item.id === 'violation-details' ? '#17a2b8' : 'transparent',
+                                    color: item.id === 'violation-details' ? '#ffffff' : '#b2c3d4',
                                 }}
                             >
-                                <span className="flex-shrink-0" style={{ color: item.id === 'pending-fine' ? '#ffffff' : '#b2c3d4' }}>{item.icon}</span>
+                                <span className="flex-shrink-0" style={{ color: item.id === 'violation-details' ? '#ffffff' : '#b2c3d4' }}>{item.icon}</span>
                                 {sidebarOpen && <span style={{ fontSize: '15px', fontWeight: '500' }}>{item.label}</span>}
                             </button>
                         ))}
@@ -129,7 +128,7 @@ export default function PendingFine() {
                 {/* Main Content */}
                 <main className="flex-1 p-6 transition-all duration-300" style={{ marginLeft: sidebarWidth }}>
                     <div className="container-fluid mx-auto max-w-7xl">
-                        <h1 className="text-3xl font-normal text-gray-800 mb-2 mt-4">Driver's Pending Fine</h1>
+                        <h1 className="text-3xl font-normal text-gray-800 mb-2 mt-4">Violation Details</h1>
                         
                         <div className="flex items-center text-sm text-gray-500 mb-6">
                             <span 
@@ -139,7 +138,7 @@ export default function PendingFine() {
                                 Dashboard
                             </span>
                             <span className="mx-2">/</span>
-                            <span>Driver's Pending Fine</span>
+                            <span>Violation Details</span>
                         </div>
 
                         <div className="bg-white rounded shadow-sm border border-gray-200 border-t-0 border-l-0 border-r-0 mb-4">
@@ -163,54 +162,34 @@ export default function PendingFine() {
                                     <table className="w-full border-collapse">
                                         <thead>
                                             <tr className="bg-gray-200 text-gray-700 text-sm font-bold text-left border-b border-gray-300">
-                                                <th className="py-2.5 px-3 border-r border-white w-48">Action</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Reference No</th>
+                                                <th className="py-2.5 px-3 border-r border-white w-24">Fine ID</th>
+                                                <th className="py-2.5 px-3 border-r border-white w-48">Section of Act</th>
                                                 <th className="py-2.5 px-3 border-r border-white">Provision</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Vehicle No</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Issue Date</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Expire Date</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Court Date</th>
-                                                <th className="py-2.5 px-3">Amount LKR</th>
+                                                <th className="py-2.5 px-3">Fine Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {pendingFines.map((fine, index) => (
-                                                <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
-                                                    <td className="py-3 px-3">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <button className="bg-[#17a2b8] hover:bg-[#138496] text-white p-1.5 rounded transition-colors" title="View">
-                                                                <Info size={16} />
-                                                            </button>
-                                                            <button className="bg-[#ffc107] hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1">
-                                                                Pay Now <Coins size={14} />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                    <td className="py-3 px-3">{fine.refNo}</td>
-                                                    <td className="py-3 px-3">{fine.provision}</td>
-                                                    <td className="py-3 px-3">{fine.vehicleNo}</td>
-                                                    <td className="py-3 px-3">{fine.issueDate}</td>
-                                                    <td className="py-3 px-3">{fine.expireDate}</td>
-                                                    <td className="py-3 px-3">{fine.courtDate}</td>
-                                                    <td className="py-3 px-3">{fine.amount}</td>
-                                                </tr>
-                                            ))}
-                                            {pendingFines.length === 0 && (
+                                            {violations.length > 0 ? (
+                                                violations.map((v, index) => (
+                                                    <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
+                                                        <td className="py-3 px-3">{v.id}</td>
+                                                        <td className="py-3 px-3">{v.act}</td>
+                                                        <td className="py-3 px-3">{v.provision}</td>
+                                                        <td className="py-3 px-3">{v.amount}</td>
+                                                    </tr>
+                                                ))
+                                            ) : (
                                                 <tr>
-                                                    <td colSpan="8" className="py-4 text-center text-gray-500 text-sm">No data available in table</td>
+                                                    <td colSpan="4" className="py-4 text-center text-gray-500 text-sm font-medium">No data available in table</td>
                                                 </tr>
                                             )}
                                         </tbody>
                                         <tfoot className="bg-gray-300 text-gray-700 text-sm font-bold text-left border-t border-gray-300">
                                             <tr>
-                                                <th className="py-2.5 px-3 border-r border-white">Action</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Reference No</th>
+                                                <th className="py-2.5 px-3 border-r border-white">Fine ID</th>
+                                                <th className="py-2.5 px-3 border-r border-white">Section of Act</th>
                                                 <th className="py-2.5 px-3 border-r border-white">Provision</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Vehicle No</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Issue Date</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Expire Date</th>
-                                                <th className="py-2.5 px-3 border-r border-white">Court Date</th>
-                                                <th className="py-2.5 px-3">Amount LKR</th>
+                                                <th className="py-2.5 px-3">Fine Amount</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -218,7 +197,7 @@ export default function PendingFine() {
                                 
                                 <div className="flex justify-between items-center mt-4">
                                     <div className="text-sm text-gray-600">
-                                        Showing 1 to {pendingFines.length} of {pendingFines.length} entries
+                                        Showing 1 to {violations.length} of {violations.length} entries
                                     </div>
                                     <div className="flex border border-gray-300 rounded text-sm overflow-hidden shadow-sm">
                                         <button className="px-3 py-1.5 text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>

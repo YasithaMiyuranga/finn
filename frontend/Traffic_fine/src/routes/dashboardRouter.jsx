@@ -13,13 +13,14 @@ import DriverDashboard from '../features/Driver/DriverDashboard';
 import CompleteProfile from '../features/Driver/CompleteProfile';
 import PendingFine from '../features/Driver/pages/PendingFine';
 import PaidFine from '../features/Driver/pages/PaidFine';
+import DriverViolationDetails from '../features/Driver/pages/ViolationDetails'; // Renamed to avoid collision with Admin's ViolationDetails
 import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
 import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
 import ViewAllDrivers from '../features/Admin/ViewAllDrivers';
 import AddTrafficOfficer from '../features/Admin/AddTrafficOfficer';
 import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
-import ViolationDetails from '../features/Admin/ViolationDetails';
+import ViolationDetails from '../features/Admin/ViolationDetails'; // Existing Admin ViolationDetails
 import PaidFineTickets from '../features/Admin/PaidFineTickets';
 import PendingFineTickets from '../features/Admin/PendingFineTickets';
 import PoliceOfficerDashboard from '../features/PoliceOfficer/PoliceOfficerDashboard';
@@ -34,6 +35,7 @@ const DashboardRouter = () => {
             <Route path="/driver/complete-profile" element={<CompleteProfile />} />
             <Route path="/driver/pending-fine" element={<PendingFine />} />
             <Route path="/driver/paid-fine" element={<PaidFine />} />
+            <Route path="/driver/violation-details" element={<DriverViolationDetails />} />
             <Route path="/user" element={<GeneralUserDashboard />} />
             <Route path="/oic" element={<PoliceOICDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />

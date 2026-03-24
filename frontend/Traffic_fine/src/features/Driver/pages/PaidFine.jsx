@@ -18,13 +18,14 @@ export default function PaidFine() {
         { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
         { id: 'pending-fine', label: "Driver's Pending Fine", icon: <Hourglass size={18} /> },
         { id: 'paid-fine', label: "Driver's Paid Fine", icon: <Coins size={18} /> },
-        { id: 'provision-details', label: 'Provision Details', icon: <FileText size={18} /> },
+        { id: 'violation-details', label: 'Violation Details', icon: <FileText size={18} /> },
     ];
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/driver');
         if (id === 'pending-fine') navigate('/dashboard/driver/pending-fine');
         if (id === 'paid-fine') navigate('/dashboard/driver/paid-fine');
+        if (id === 'violation-details') navigate('/dashboard/driver/violation-details');
         // Add more routes as they are created
     };
 
