@@ -15,6 +15,22 @@ export default function DriverDashboard() {
     const navigate = useNavigate();
     const [driverData, setDriverData] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    
+    // Adjusted sidebar width to match the PHP version perfectly
+    const sidebarWidth = sidebarOpen ? '250px' : '70px';
+
+    const navItems = [
+        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+        { id: 'pending-fine', label: "Driver's Pending Fine", icon: <Hourglass size={18} /> },
+        { id: 'paid-fine', label: "Driver's Paid Fine", icon: <Coins size={18} /> },
+        { id: 'provision-details', label: 'Provision Details', icon: <FileText size={18} /> },
+    ];
+
+    const handleNav = (id) => {
+        if (id === 'dashboard') navigate('/dashboard/driver');
+        // Add more routing later based on user requests
+    };
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -93,7 +109,7 @@ export default function DriverDashboard() {
             {/* Top Navigation */}
             <nav className="bg-[#0e2238] text-white h-16 flex items-center justify-between px-4 fixed top-0 w-full z-50 shadow-lg">
                 <div className="flex items-center gap-4">
-                    <Menu className="cursor-pointer hover:opacity-80" size={24} />
+                    <Menu className="cursor-pointer hover:opacity-80" size={24} onClick={() => setSidebarOpen(!sidebarOpen)} />
                     <div className="flex items-center gap-2">
                         <div className="bg-red-600 p-1.5 rounded-lg">
                             <Bell size={20} className="text-white" fill="white" />
@@ -136,25 +152,37 @@ export default function DriverDashboard() {
 
             <div className="flex flex-1 pt-16">
                 {/* Sidebar */}
-                <aside className="w-16 bg-[#0e2238] border-t border-gray-700 flex flex-col items-center py-4 fixed h-full left-0 z-40">
-                    <div className="flex flex-col gap-6 w-full items-center">
-                        <div className="bg-white/10 p-3 rounded-lg cursor-pointer text-white">
-                            <LayoutDashboard size={24} />
-                        </div>
-                        <div className="p-3 cursor-pointer text-gray-400 hover:text-white transition-colors">
-                            <Hourglass size={24} />
-                        </div>
-                        <div className="p-3 cursor-pointer text-gray-400 hover:text-white transition-colors">
-                            <Coins size={24} />
-                        </div>
-                        <div className="p-3 cursor-pointer text-gray-400 hover:text-white transition-colors">
-                            <FileText size={24} />
-                        </div>
+                <aside 
+                    className="flex flex-col items-center py-2 fixed h-full left-0 z-40 transition-all duration-300"
+                    style={{ width: sidebarWidth, backgroundColor: '#0f2439', borderTop: '1px solid #1c344d', overflowX: 'hidden' }}
+                >
+                    <div className="flex flex-col w-full mt-2">
+                        {navItems.map(item => (
+                            <button 
+                                key={item.id} 
+                                onClick={() => handleNav(item.id)} 
+                                title={item.label}
+                                className="w-full flex items-center transition-colors cursor-pointer"
+                                style={{
+                                    padding: '16px 20px',
+                                    paddingLeft: sidebarOpen ? '20px' : '26px',
+                                    justifyContent: 'flex-start',
+                                    gap: '15px', 
+                                    whiteSpace: 'nowrap', 
+                                    border: 'none',
+                                    backgroundColor: item.id === 'dashboard' ? '#17a2b8' : 'transparent',
+                                    color: item.id === 'dashboard' ? '#ffffff' : '#b2c3d4',
+                                }}
+                            >
+                                <span className="flex-shrink-0" style={{ color: item.id === 'dashboard' ? '#ffffff' : '#b2c3d4' }}>{item.icon}</span>
+                                {sidebarOpen && <span style={{ fontSize: '15px', fontWeight: '500' }}>{item.label}</span>}
+                            </button>
+                        ))}
                     </div>
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 ml-16 p-6">
+                <main className="flex-1 p-6 transition-all duration-300" style={{ marginLeft: sidebarWidth }}>
                     {/* Account Holder Info */}
                     <div className="bg-white rounded-lg shadow-sm p-5 mb-6 border border-gray-100 flex items-center justify-between">
                         <div className="flex items-center gap-4">

@@ -32,19 +32,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             Map<String,Object> claims = jwtUtil.getClaims(token);
             String email = (String) claims.get("email");
 
-            //      ** with role base **
-
-//            String role = (String) claims.get("role");
-//            String email = (String) claims.get("email");
-//            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-//            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-            //            UsernamePasswordAuthenticationToken auth =
-//                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
-//            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            //      ** without role base **
-
             UserDetails userDetails = userDetailsService.loadUserByUsername(email);
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
