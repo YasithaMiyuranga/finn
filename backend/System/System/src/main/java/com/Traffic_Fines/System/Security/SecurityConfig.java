@@ -35,13 +35,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/auth/**",
-                                "/api/Driver/getDriverByUserId/**",
-                                "/api/Driver/getDrivers",
-                                "/api/Driver/getStats",
-                                "/api/Driver/getMonthlyChart",
+                                "/api/Driver/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html").permitAll()
+                                "/swagger-ui.html"
+                        ).permitAll()
 
                         // FIX 1: Allow all OPTIONS (preflight) requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

@@ -21,7 +21,7 @@ public class Police_OfficersDTO {
 
     // Optional fields initially (filled later during profile completion)
     private String gender;
-    
+
     @Past(message = "Date of birth must be a past date")
     private LocalDate dateOfBirth;
 
@@ -46,7 +46,7 @@ public class Police_OfficersDTO {
     private LocalDate registeredDate;
 
     private Integer userId;
-    
+
     // Extracted by ModelMapper from Police_Officers.user.email
     private String userEmail;
 }

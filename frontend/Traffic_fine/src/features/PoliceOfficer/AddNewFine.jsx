@@ -48,11 +48,11 @@ export default function AddNewFine() {
                 const res = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
+
                 if (res.ok) {
                     const data = await res.json();
                     const officers = data.data || (Array.isArray(data) ? data : []);
-                    
+
                     // Match logged in user with an officer record
                     const me = officers.find(o => {
                         const oUserId = o.userId || (o.user && (o.user.id || o.user.userId || o.user));
@@ -109,7 +109,7 @@ export default function AddNewFine() {
             if (res.ok) {
                 const result = await res.json();
                 const matched = result.data;
-                
+
                 if (matched) {
                     setDriverDetails({
                         driverId: matched.id,
@@ -157,9 +157,9 @@ export default function AddNewFine() {
     const renderInput = (label, placeholder, disabled = false, type = "text", value = "", onChange = undefined) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
             <label style={{ fontSize: '14px', color: '#212529', fontWeight: '500' }}>{label}</label>
-            <input 
-                type={type} 
-                placeholder={placeholder} 
+            <input
+                type={type}
+                placeholder={placeholder}
                 disabled={disabled}
                 readOnly={disabled || (value !== undefined && onChange === undefined)}
                 value={value}
@@ -181,7 +181,7 @@ export default function AddNewFine() {
     const renderSelect = (label, options, value, onChange) => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
             <label style={{ fontSize: '14px', color: '#212529', fontWeight: '500' }}>{label}</label>
-            <select 
+            <select
                 value={value}
                 onChange={onChange}
                 style={{
@@ -208,6 +208,11 @@ export default function AddNewFine() {
     );
 
     const handleIssueFine = async () => {
+        console.log("--- Issuing Fine Debug Log ---");
+        console.log("Driver Details:", driverDetails);
+        console.log("Officer Details:", officerDetails);
+        console.log("Fine Info (Provision):", fineInfo);
+
         if (!driverDetails.driverId) {
             alert("Please search for a driver first using a valid license number.");
             return;
@@ -220,23 +225,19 @@ export default function AddNewFine() {
             alert("Please select a provision (violation type).");
             return;
         }
-        if (!fineInfo.amount) {
-            alert("Fine amount is missing for the selected provision.");
-            return;
-        }
 
         const payload = {
-            policeId: officerDetails.officerId || "P500000",
-            licenseId: driverDetails.licenseId || searchQuery,
-            vehicleNo: fineInfo.vehicleNo || "N/A",
-            classOfVehicle: driverDetails.vehicleClass || "A1",
-            place: fineInfo.place || "Unknown",
+            policeId: String(officerDetails.officerId || "P500000"),
+            licenseId: String(driverDetails.licenseId || searchQuery),
+            vehicleNo: String(fineInfo.vehicleNo || "N/A"),
+            classOfVehicle: String(driverDetails.vehicleClass || "A1"),
+            place: String(fineInfo.place || "Unknown"),
             issuedDate: new Date().toISOString().split('T')[0],
             issuedTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ":00",
             expireDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            court: officerDetails.court || "Kegalla",
+            court: String(officerDetails.court || "Kegalla"),
             courtDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            provisions: fineInfo.provisionId || "101",
+            provisions: String(fineInfo.provisionId || "101"),
             totalAmount: parseFloat(fineInfo.amount) || 0,
             status: "pending",
 
@@ -246,26 +247,30 @@ export default function AddNewFine() {
             violationId: parseInt(fineInfo.provisionId)
         };
 
+        console.log("Final Payload to Backend:", payload);
+
         try {
             const token = localStorage.getItem('token');
             const res = await fetch('http://localhost:8080/api/traffic_fine/saveTrafficFine', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}` 
+                    Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify(payload)
             });
 
-            if (res.ok) {
+            const result = await res.json().catch(() => ({}));
+            console.log("Backend Response JSON:", result);
+
+            if (res.ok && result.success !== false) {
                 alert("Fine issued successfully!");
                 navigate('/dashboard/policeofficer/view-reported-fine');
             } else {
-                const data = await res.json().catch(() => ({}));
-                alert("Failed to issue fine: " + (data.message || res.statusText));
+                alert("Failed to issue fine: " + (result.message || res.statusText));
             }
         } catch (err) {
-            console.error(err);
+            console.error("Fetch Error:", err);
             alert("Network error issuing fine.");
         }
     };
@@ -357,9 +362,9 @@ export default function AddNewFine() {
                 {/* PAGE CONTENT */}
                 <div style={{ padding: '24px 32px' }}>
                     <h1 style={{ fontSize: '32px', fontWeight: '400', marginBottom: '16px', color: '#212529' }}>Add New Fine</h1>
-                    
+
                     {/* Breadcrumb */}
-                    <div style={{ 
+                    <div style={{
                         backgroundColor: '#e9ecef', padding: '12px 16px', borderRadius: '4px',
                         marginBottom: '24px', fontSize: '15px', color: '#6c757d'
                     }}>
@@ -367,9 +372,9 @@ export default function AddNewFine() {
                     </div>
 
                     {/* Main Form Card */}
-                    <div style={{ 
-                        backgroundColor: '#fff', 
-                        border: '1px solid rgba(0,0,0,.125)', 
+                    <div style={{
+                        backgroundColor: '#fff',
+                        border: '1px solid rgba(0,0,0,.125)',
                         borderRadius: '4px',
                         padding: '40px 48px'
                     }}>
@@ -378,9 +383,9 @@ export default function AddNewFine() {
                         <div style={{ marginBottom: '32px' }}>
                             <h3 style={{ fontSize: '24px', fontWeight: '400', marginBottom: '16px' }}>Search Driver Details</h3>
                             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', maxWidth: '50%' }}>
-                                <input 
-                                    type="text" 
-                                    placeholder="Driving Licence No" 
+                                <input
+                                    type="text"
+                                    placeholder="Driving Licence No"
                                     style={{
                                         flex: 1,
                                         padding: '10px 14px',
@@ -452,24 +457,24 @@ export default function AddNewFine() {
                         <div style={{ marginBottom: '40px' }}>
                             <h3 style={{ fontSize: '24px', fontWeight: '400', marginBottom: '16px' }}>Fine Information</h3>
                             <div style={{ display: 'flex', gap: '24px', marginBottom: '16px' }}>
-                                {renderInput("Place", "Place", false, "text", fineInfo.place, (e) => setFineInfo({...fineInfo, place: e.target.value}))}
-                                {renderInput("Vehicle No", "Vehicle No", false, "text", fineInfo.vehicleNo, (e) => setFineInfo({...fineInfo, vehicleNo: e.target.value}))}
+                                {renderInput("Place", "Place", false, "text", fineInfo.place, (e) => setFineInfo({ ...fineInfo, place: e.target.value }))}
+                                {renderInput("Vehicle No", "Vehicle No", false, "text", fineInfo.vehicleNo, (e) => setFineInfo({ ...fineInfo, vehicleNo: e.target.value }))}
                             </div>
                             <div style={{ display: 'flex', gap: '24px' }}>
                                 {renderSelect(
-                                    "Select Provision", 
+                                    "Select Provision",
                                     [
-                                        { label: "Please Select Provision", value: "" }, 
+                                        { label: "Please Select Provision", value: "" },
                                         ...violationTypes.map(v => ({
                                             label: `${v.slLawReference} - ${v.violationDescription}`,
                                             value: v.id
                                         }))
-                                    ], 
-                                    fineInfo.provisionId, 
+                                    ],
+                                    fineInfo.provisionId,
                                     (e) => {
                                         const selectedId = e.target.value;
                                         const found = violationTypes.find(v => String(v.id) === String(selectedId));
-                                        setFineInfo({...fineInfo, provisionId: selectedId, amount: found ? found.amount : ""});
+                                        setFineInfo({ ...fineInfo, provisionId: selectedId, amount: found ? found.amount : "" });
                                     }
                                 )}
                                 {renderInput("Total Fine Amount", "Amount", true, "text", fineInfo.amount)}
@@ -477,20 +482,20 @@ export default function AddNewFine() {
                         </div>
 
                         {/* Issue Fine Button */}
-                        <button 
+                        <button
                             onClick={handleIssueFine}
                             style={{
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            padding: '10px 20px',
-                            borderRadius: '4px',
-                            fontSize: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer'
-                        }}>
+                                backgroundColor: '#007bff',
+                                color: 'white',
+                                border: 'none',
+                                padding: '10px 20px',
+                                borderRadius: '4px',
+                                fontSize: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                cursor: 'pointer'
+                            }}>
                             <PlusCircle size={18} /> Issue Fine
                         </button>
 

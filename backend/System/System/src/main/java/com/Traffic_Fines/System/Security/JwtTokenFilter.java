@@ -28,15 +28,21 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String token = getTokenFromRequest(request);
-        if (token != null && jwtUtil.validateToken(token)) {
-            Map<String,Object> claims = jwtUtil.getClaims(token);
-            String email = (String) claims.get("email");
+        try {
+            if (token != null && jwtUtil.validateToken(token)) {
+                Map<String,Object> claims = jwtUtil.getClaims(token);
+                String email = (String) claims.get("email");
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            SecurityContextHolder.getContext().setAuthentication(auth);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        } catch (Exception e) {
+            // Log the error but continue the filter chain.
+            // This allows permitAll() endpoints to still be accessible.
+            logger.error("Could not set user authentication in security context", e);
         }
         filterChain.doFilter(request, response);
     }

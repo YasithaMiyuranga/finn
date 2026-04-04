@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "api/Driver")
-@CrossOrigin(origins = "http://localhost:5173/")
+@RequestMapping(value = "/api/Driver")
 public class DriverController {
 
     @Autowired
