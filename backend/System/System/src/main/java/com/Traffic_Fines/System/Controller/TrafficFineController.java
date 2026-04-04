@@ -16,9 +16,7 @@ import java.util.Map;
 
 
 
-@RestController
-@RequestMapping(value = "api/traffic_fine")
-@CrossOrigin
+@RequestMapping(value = "/api/traffic_fine")
 public class TrafficFineController {
 
     @Autowired
@@ -40,7 +38,7 @@ public class TrafficFineController {
             if (!errors.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Input Validation failed", errors));
             }
-            return ResponseEntity.ok(new Respons<>(true, "saved Traffic Fine add", trafficFineService.saveTrafficFine(trafficFineDTO)));
+            return ResponseEntity.ok(trafficFineService.saveTrafficFine(trafficFineDTO));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "", e.getMessage()));
         }

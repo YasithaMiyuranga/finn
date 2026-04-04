@@ -131,6 +131,20 @@ public class DriverService {
         return driverRepo.findByUser(userId);
     }
 
+    public java.util.Map<String, Object> getDriverByLicense(int licenseNumber) {
+        Driver d = driverRepo.findByLicenseNumber(licenseNumber);
+        if (d == null) return null;
+        
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("id", d.getId());
+        map.put("firstName", d.getFirstName());
+        map.put("lastName", d.getLastName());
+        map.put("licenseNumber", d.getLicenseNumber());
+        map.put("address", d.getAddress());
+        map.put("classOfVehicle", d.getClassOfVehicle());
+        return map;
+    }
+
     // =================== STATS FOR ADMIN DASHBOARD ===================
 
     public Map<String, Long> getDriverStats() {

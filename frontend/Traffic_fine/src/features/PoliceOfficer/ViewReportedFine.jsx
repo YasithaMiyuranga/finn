@@ -50,31 +50,18 @@ export default function ViewReportedFine() {
                         allFines = data;
                     }
 
-                    // Filter for logged in officer if possible
-                    if (officerDbId) {
-                        allFines = allFines.filter(f => {
-                            const fOfficerId = f.policeOfficer?.id || f.policeOfficer;
-                            return String(fOfficerId) === String(officerDbId);
-                        });
-                    }
+                    // Show ALL fines to verify database saving
+                    console.log("All fines from DB:", allFines);
 
                     // Map fields
                     const mappedFines = allFines.map(f => {
-                        let vehicleNo = "";
-                        let cleanLocation = f.location || "";
-                        if (cleanLocation.includes("(Veh:")) {
-                            const parts = cleanLocation.split("(Veh:");
-                            cleanLocation = parts[0].trim();
-                            vehicleNo = parts[1].replace(")", "").trim();
-                        }
-                        
                         return {
-                            referenceNo: f.fineNumber || "N/A",
-                            drivingLicenseNo: f.driver?.licenseNumber || f.driver || "N/A",
-                            provision: f.violationType?.slLawReference || f.violationType?.id || f.violationType || "N/A",
-                            vehicleNo: vehicleNo || "N/A",
-                            totalAmount: f.fineAmount ? parseFloat(f.fineAmount).toFixed(2) : "0.00",
-                            issueDate: f.issueDate || "N/A"
+                            referenceNo: f.refNo || "N/A",
+                            drivingLicenseNo: f.licenseId || "N/A",
+                            provision: f.provisions || f.violationType?.violationName || "N/A",
+                            vehicleNo: f.vehicleNo || "N/A",
+                            totalAmount: f.totalAmount ? parseFloat(f.totalAmount).toFixed(2) : "0.00",
+                            issueDate: f.issuedDate || "N/A"
                         };
                     });
 

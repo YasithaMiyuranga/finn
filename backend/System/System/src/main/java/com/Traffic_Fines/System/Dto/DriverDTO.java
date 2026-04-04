@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
@@ -65,6 +64,5 @@ public class DriverDTO {
 
     @Min(value = 1, message = "User is required")
     private int user;
-
 
 }

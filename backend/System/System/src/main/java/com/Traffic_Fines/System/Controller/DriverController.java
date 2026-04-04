@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping(value = "api/Driver")
-@CrossOrigin(origins = "http://localhost:5173/")
+@RequestMapping(value = "/api/Driver")
 public class DriverController {
 
     @Autowired
@@ -67,6 +66,16 @@ public class DriverController {
     public ResponseEntity<Respons<?>> getDriverByUserId(@PathVariable int userId) {
         try {
             return ResponseEntity.ok(new Respons<>(true, "Driver found", driverService.getDriverByUserId(userId)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Driver not found", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/getByLicense/{licenseNumber}")
+    public ResponseEntity<Respons<?>> getDriverByLicense(@PathVariable String licenseNumber) {
+        try {
+            int license = Integer.parseInt(licenseNumber);
+            return ResponseEntity.ok(new Respons<>(true, "Driver found", driverService.getDriverByLicense(license)));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Driver not found", e.getMessage()));
         }

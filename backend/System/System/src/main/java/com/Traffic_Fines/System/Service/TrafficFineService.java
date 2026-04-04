@@ -1,108 +1,107 @@
 package com.Traffic_Fines.System.Service;
 
-
 import com.Traffic_Fines.System.Dto.TrafficFineDTO;
-import com.Traffic_Fines.System.Entity.TrafficFine;
 import com.Traffic_Fines.System.Entity.Driver;
-import com.Traffic_Fines.System.Entity.ViolationType;
 import com.Traffic_Fines.System.Entity.Police_Officers;
-
-import com.Traffic_Fines.System.Repository.TrafficFineRepo;
-import com.Traffic_Fines.System.Repository.DriverRepo;
-
-import com.Traffic_Fines.System.Repository.Police_OfficersRepo;
-import com.Traffic_Fines.System.Repository.ViolationTypeRepo;
-
+import com.Traffic_Fines.System.Entity.TrafficFine;
+import com.Traffic_Fines.System.Entity.ViolationType;
+import com.Traffic_Fines.System.Repository.*;
 import com.Traffic_Fines.System.Respons.Respons;
 import jakarta.transaction.Transactional;
-import org.modelmapper.ModelMapper;
-import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
 @Transactional
 public class TrafficFineService {
+
     @Autowired
     private TrafficFineRepo trafficFineRepo;
 
     @Autowired
-    private ModelMapper modelMapper;
+    private Police_OfficersRepo policeOfficerRepo;
 
     @Autowired
     private DriverRepo driverRepo;
 
     @Autowired
-    private Police_OfficersRepo policeOfficersRepo;
-
-    @Autowired
     private ViolationTypeRepo violationTypeRepo;
 
-    public Respons saveTrafficFine(TrafficFineDTO trafficFineDTO) {
+    @Autowired
+    private PendingFineRepo pendingFineRepo;
 
-        Driver driver = driverRepo.findById(trafficFineDTO.getDriver());
-        if (driver == null) return new Respons<>(false, "invalid id", null);
+    public Respons<Integer> saveTrafficFine(TrafficFineDTO dto) {
 
-        Police_Officers police_officers = policeOfficersRepo.findById(trafficFineDTO.getPoliceOfficer());
-        if (police_officers == null) return new Respons<>(false, "invalid id", null);
+        // Internal relational lookups
+        Driver driver = driverRepo.findById(dto.getDriverId());
+        if (driver == null) return new Respons<>(false, "invalid driver id", null);
 
-        ViolationType violationType = violationTypeRepo.findById(trafficFineDTO.getViolationType());
-        if (violationType == null) return new Respons<>(false, "invalid id", null);
+        Police_Officers officer = policeOfficerRepo.findById(dto.getOfficerId());
+        if (officer == null) return new Respons<>(false, "invalid officer id", null);
 
-        TrafficFine trafficFines = new TrafficFine();
+        ViolationType violation = violationTypeRepo.findById(dto.getViolationId());
+        if (violation == null) return new Respons<>(false, "invalid violation id", null);
 
-        trafficFines.setFineNumber(trafficFineDTO.getFineNumber());
-        trafficFines.setIssueDate(trafficFineDTO.getIssueDate());
-        trafficFines.setIssueTime(trafficFineDTO.getIssueTime());
-        trafficFines.setLocation(trafficFineDTO.getLocation());
-        trafficFines.setFineAmount(trafficFineDTO.getFineAmount());
-        trafficFines.setOutstandingAmount(trafficFineDTO.getOutstandingAmount());
-        trafficFines.setPaymentStatus(trafficFineDTO.getPaymentStatus());
-        trafficFines.setPaymentDueDate(trafficFineDTO.getPaymentDueDate());
+        // Map DTO to Entity (Matching PHP Structure)
+        TrafficFine fine = new TrafficFine();
+        
+        fine.setPoliceId(dto.getPoliceId());
+        fine.setLicenseId(dto.getLicenseId());
+        fine.setVehicleNo(dto.getVehicleNo());
+        fine.setClassOfVehicle(dto.getClassOfVehicle());
+        fine.setPlace(dto.getPlace());
+        fine.setIssuedDate(dto.getIssuedDate());
+        fine.setIssuedTime(dto.getIssuedTime());
+        fine.setExpireDate(dto.getExpireDate());
+        fine.setCourt(dto.getCourt());
+        fine.setCourtDate(dto.getCourtDate());
+        fine.setProvisions(dto.getProvisions());
+        fine.setTotalAmount(dto.getTotalAmount());
+        fine.setStatus(dto.getStatus() != null ? dto.getStatus() : "pending");
 
-        trafficFines.setDriver(driver); //  update karana vidiyta methana save karanna ba  update kiyanne ekak save kiyanne thava ekak 2k 1k nemi
-        trafficFines.setPoliceOfficer(police_officers);
-        trafficFines.setViolationType(violationType);
+        // Relationship linking
+        fine.setDriver(driver);
+        fine.setPoliceOfficer(officer);
+        fine.setViolationType(violation);
 
-        TrafficFine savedTrafficFine = trafficFineRepo.save(trafficFines);
+        TrafficFine savedFine = trafficFineRepo.save(fine);
 
-        return new Respons<>(true, "Traffic Fines add", savedTrafficFine.getId());
+        // Also save to PendingFine for dashboard visibility
+        com.Traffic_Fines.System.Entity.PendingFine pending = new com.Traffic_Fines.System.Entity.PendingFine();
+        pending.setDriver(driver);
+        pending.setFine(savedFine);
+        pending.setOicReviewStatus("PENDING");
+        pendingFineRepo.save(pending);
+
+        return new Respons<>(true, "Traffic Fine added successfully", savedFine.getRefNo());
     }
 
-    public List<TrafficFine> getAllTrafficFines(){
-        List<TrafficFine>TrafficFineList=trafficFineRepo.findAll();
-        return modelMapper.map(TrafficFineList,new TypeToken<List<TrafficFine>>(){}.getType());
+    public Respons<Integer> updateTrafficFine(int id, TrafficFineDTO dto) {
+        TrafficFine existing = trafficFineRepo.findById(id);
+        if (existing == null) return new Respons<>(false, "Fine not found", null);
+
+        existing.setVehicleNo(dto.getVehicleNo());
+        existing.setPlace(dto.getPlace());
+        existing.setExpireDate(dto.getExpireDate());
+        existing.setCourt(dto.getCourt());
+        existing.setCourtDate(dto.getCourtDate());
+        existing.setProvisions(dto.getProvisions());
+        existing.setTotalAmount(dto.getTotalAmount());
+        existing.setStatus(dto.getStatus());
+
+        trafficFineRepo.save(existing);
+        return new Respons<>(true, "Traffic Fine updated successfully", id);
     }
 
-    public Respons updateTrafficFine(int id, TrafficFineDTO trafficFineDTO) {
-        TrafficFine trafficFine = trafficFineRepo.findById(id);
-        if(trafficFine == null ){
-            return new Respons<>(false,"invalid id",null);
-        }
-
-        trafficFine.setFineNumber(trafficFineDTO.getFineNumber());
-        trafficFine.setIssueDate(trafficFineDTO.getIssueDate());
-        trafficFine.setIssueTime(trafficFineDTO.getIssueTime());
-        trafficFine.setLocation(trafficFineDTO.getLocation());
-        trafficFine.setFineAmount(trafficFineDTO.getFineAmount());
-        trafficFine.setOutstandingAmount(trafficFineDTO.getOutstandingAmount());
-        trafficFine.setPaymentStatus(trafficFineDTO.getPaymentStatus());
-        trafficFine.setPaymentDueDate(trafficFineDTO.getPaymentDueDate());
-
-        TrafficFine savedTrafficFine= trafficFineRepo.save(trafficFine);
-
-        return new Respons<>(true,"update Traffic Fine ",savedTrafficFine .getId());
-
-    }
-
-    public Respons deleteTrafficFine (int id){
-        TrafficFine trafficFine = trafficFineRepo.findById(id);
-        if(trafficFine == null ){
-            return new Respons(false,"invalid id",null);
-        }
+    public Respons<Integer> deleteTrafficFine(int id) {
+        if (!trafficFineRepo.existsById(id)) return new Respons<>(false, "Fine not found", null);
         trafficFineRepo.deleteById(id);
-        return new Respons(true,"delete Traffic Fine ",id);
+        return new Respons<>(true, "Traffic Fine deleted successfully", id);
     }
 
+    public List<TrafficFine> getAllTrafficFines() {
+        return trafficFineRepo.findAll();
+    }
 }
