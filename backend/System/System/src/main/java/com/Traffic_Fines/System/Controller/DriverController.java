@@ -72,6 +72,16 @@ public class DriverController {
         }
     }
 
+    @GetMapping("/getByLicense/{licenseNumber}")
+    public ResponseEntity<Respons<?>> getDriverByLicense(@PathVariable String licenseNumber) {
+        try {
+            int license = Integer.parseInt(licenseNumber);
+            return ResponseEntity.ok(new Respons<>(true, "Driver found", driverService.getDriverByLicense(license)));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Driver not found", e.getMessage()));
+        }
+    }
+
     @GetMapping("/getStats")
     public ResponseEntity<Respons<?>> getDriverStats() {
         try {

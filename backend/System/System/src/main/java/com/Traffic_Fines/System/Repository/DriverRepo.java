@@ -11,6 +11,8 @@ public interface DriverRepo extends JpaRepository<Driver, Integer> {
     @Query("SELECT p FROM Driver p WHERE p.user.id = :id")
     Driver findByUser(@Param("id") int id);
 
+    Driver findByLicenseNumber(int licenseNumber);
+
     // Total registered drivers
     long countBy();
 

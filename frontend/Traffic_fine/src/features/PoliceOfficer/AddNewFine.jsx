@@ -43,6 +43,8 @@ export default function AddNewFine() {
                 const userId = localStorage.getItem('userId');
                 if (!userId || !token) return;
 
+                console.log("Fetching profile for user ID:", userId);
+
                 const res = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -51,22 +53,25 @@ export default function AddNewFine() {
                     const data = await res.json();
                     const officers = data.data || (Array.isArray(data) ? data : []);
                     
-                    // Match either userId (ModelMapper mapped), user (direct object), or user.id
-                    const me = officers.find(o => 
-                        String(o.userId) === String(userId) || 
-                        String(o.user) === String(userId) || 
-                        (o.user && String(o.user.id || o.user.userId || o.user) === String(userId)) ||
-                        String(o.id) === String(userId) // fallback if the officer ID somehow matches log-in ID
-                    );
+                    // Match logged in user with an officer record
+                    const me = officers.find(o => {
+                        const oUserId = o.userId || (o.user && (o.user.id || o.user.userId || o.user));
+                        return String(oUserId) === String(userId);
+                    });
 
                     if (me) {
+                        console.log("Matched officer record details:", me);
+                        const dbId = me.id || me.officerId || me.policeid;
                         setOfficerDetails({
-                            officerDbId: me.id,
+                            officerDbId: dbId,
                             officerId: me.policeid || me.id || "",
                             officerName: me.fullName || me.officerName || "",
                             policeStation: me.policeStation || "",
                             court: me.court || ""
                         });
+                        console.log("Internal Officer DB ID Set to:", dbId);
+                    } else {
+                        console.warn("No officer record found for user ID:", userId);
                     }
                 }
             } catch (err) {
@@ -97,27 +102,29 @@ export default function AddNewFine() {
         if (!searchQuery.trim()) return;
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:8080/api/Driver/getDrivers', {
+            const res = await fetch(`http://localhost:8080/api/Driver/getByLicense/${searchQuery.trim()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             if (res.ok) {
-                const data = await res.json();
-                const drivers = data.data || [];
-                const matched = drivers.find(d => String(d.licenseNumber).toLowerCase() === searchQuery.trim().toLowerCase());
+                const result = await res.json();
+                const matched = result.data;
                 
                 if (matched) {
                     setDriverDetails({
                         driverId: matched.id,
                         licenseId: matched.licenseNumber || "",
                         fullName: `${matched.firstName || ''} ${matched.lastName || ''}`.trim(),
-                        address: matched.address || matched.homeAddress || "",
-                        vehicleClass: matched.classOfVehicle || matched.vehicleClass || "A1, B" // fallback
+                        address: matched.address || "",
+                        vehicleClass: matched.classOfVehicle || "Not specified"
                     });
                 } else {
                     alert('Driver not found for the entered license number.');
                     setDriverDetails({ driverId: "", licenseId: "", fullName: "", address: "", vehicleClass: "" });
                 }
+            } else {
+                alert('Driver details not found.');
+                setDriverDetails({ driverId: "", licenseId: "", fullName: "", address: "", vehicleClass: "" });
             }
         } catch (err) {
             console.error("Search failed", err);
@@ -201,24 +208,42 @@ export default function AddNewFine() {
     );
 
     const handleIssueFine = async () => {
-        if (!driverDetails.driverId || !officerDetails.officerDbId || !fineInfo.provisionId || !fineInfo.amount) {
-            alert("Please complete driver search, ensure officer is loaded, and select a provision.");
+        if (!driverDetails.driverId) {
+            alert("Please search for a driver first using a valid license number.");
+            return;
+        }
+        if (!officerDetails.officerDbId) {
+            alert("Police officer details not fully loaded. Please refresh or re-login.");
+            return;
+        }
+        if (!fineInfo.provisionId) {
+            alert("Please select a provision (violation type).");
+            return;
+        }
+        if (!fineInfo.amount) {
+            alert("Fine amount is missing for the selected provision.");
             return;
         }
 
         const payload = {
-            fineNumber: "FN-" + Date.now().toString().slice(-6),
-            issueDate: new Date().toISOString().split('T')[0],
-            issueTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ":00",
-            location: (fineInfo.place || "On Road") + (fineInfo.vehicleNo ? ` (Veh: ${fineInfo.vehicleNo})` : ""),
-            fineAmount: parseInt(fineInfo.amount) || 0,
-            outstandingAmount: parseInt(fineInfo.amount) || 0,
-            paymentStatus: "UNPAID",
-            paymentDueDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            isNotificationSent: false,
-            driver: driverDetails.driverId,
-            policeOfficer: officerDetails.officerDbId,
-            violationType: parseInt(fineInfo.provisionId)
+            policeId: officerDetails.officerId || "P500000",
+            licenseId: driverDetails.licenseId || searchQuery,
+            vehicleNo: fineInfo.vehicleNo || "N/A",
+            classOfVehicle: driverDetails.vehicleClass || "A1",
+            place: fineInfo.place || "Unknown",
+            issuedDate: new Date().toISOString().split('T')[0],
+            issuedTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ":00",
+            expireDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            court: officerDetails.court || "Kegalla",
+            courtDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            provisions: fineInfo.provisionId || "101",
+            totalAmount: parseFloat(fineInfo.amount) || 0,
+            status: "pending",
+
+            // Real DB IDs for relations
+            driverId: parseInt(driverDetails.driverId),
+            officerId: parseInt(officerDetails.officerDbId),
+            violationId: parseInt(fineInfo.provisionId)
         };
 
         try {
