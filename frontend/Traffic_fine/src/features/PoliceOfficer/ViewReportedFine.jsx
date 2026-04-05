@@ -56,7 +56,7 @@ export default function ViewReportedFine() {
                     // Map fields
                     const mappedFines = allFines.map(f => {
                         return {
-                            referenceNo: f.id || "N/A",
+                            referenceNo: f.refNo || "N/A",
                             drivingLicenseNo: f.licenseId || "N/A",
                             provision: f.provisions || f.violationType?.violationName || "N/A",
                             vehicleNo: f.vehicalNo || f.vehicleNo || "N/A",
