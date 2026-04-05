@@ -36,18 +36,63 @@ export default function PendingFine() {
         navigate('/auth/login');
     };
 
-    // Dummy data mimicking the PHP table screenshot
-    const pendingFines = [
-        {
-            refNo: "10025",
-            provision: "108",
-            vehicleNo: "t5555",
-            issueDate: "2026-03-12",
-            expireDate: "2026-04-02",
-            courtDate: "2026-04-02",
-            amount: "3000.00"
-        }
-    ];
+    const [pendingFines, setPendingFines] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    useEffect(() => {
+        const fetchDriverFines = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const userId = localStorage.getItem('userId');
+                if (!userId || !token) return;
+
+                // 1. Fetch current driver's profile to get their license number
+                const driverRes = await fetch(`http://localhost:8080/api/Driver/getDriverByUserId/${userId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                if (!driverRes.ok) throw new Error("Failed to fetch driver profile");
+                const driverData = await driverRes.json();
+                const myLicenseNo = driverData.data?.licenseNumber;
+
+                if (!myLicenseNo) {
+                    console.error("License number not found for this driver");
+                    setLoading(false);
+                    return;
+                }
+
+                // 2. Fetch all traffic fines
+                const res = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const allFines = data.data || [];
+                    
+                    // 3. Filter: Only fines for THIS driver's license and NOT paid
+                    const filtered = allFines.filter(f => 
+                        String(f.licenseId) === String(myLicenseNo) && 
+                        (!f.paidDate || f.status === 'Pending')
+                    );
+                    
+                    setPendingFines(filtered);
+                }
+            } catch (err) {
+                console.error("Error loading pending fines:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDriverFines();
+    }, []);
+
+    const filteredFines = pendingFines.filter(f => 
+        String(f.refNo || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(f.vehicleNo || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="min-h-screen bg-[#f4f6f9] flex flex-col">
@@ -154,11 +199,14 @@ export default function PendingFine() {
                                         <label className="text-sm text-gray-600">Search:</label>
                                         <input 
                                             type="text" 
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
                                             className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-400"
+                                            placeholder="Search Ref No or Vehicle No..."
                                         />
                                     </div>
                                 </div>
-
+                                
                                 <div className="overflow-x-auto">
                                     <table className="w-full border-collapse">
                                         <thead>
@@ -174,30 +222,38 @@ export default function PendingFine() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {pendingFines.map((fine, index) => (
+                                            {loading ? (
+                                                <tr><td colSpan="8" className="py-8 text-center text-gray-500 italic">Searching for your pending fines...</td></tr>
+                                            ) : filteredFines.map((fine, index) => (
                                                 <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
                                                     <td className="py-3 px-3">
                                                         <div className="flex items-center gap-1.5">
                                                             <button className="bg-[#17a2b8] hover:bg-[#138496] text-white p-1.5 rounded transition-colors" title="View">
                                                                 <Info size={16} />
                                                             </button>
-                                                            <button className="bg-[#ffc107] hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1">
-                                                                Pay Now <Coins size={14} />
+                                                            <button 
+                                                                onClick={() => navigate(`/dashboard/driver/payment/${fine.refNo}`)}
+                                                                className="bg-[#ffc107] hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
+                                                            >
+                                                                Pay Now <CreditCard size={14} />
                                                             </button>
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-3">{fine.refNo}</td>
-                                                    <td className="py-3 px-3">{fine.provision}</td>
-                                                    <td className="py-3 px-3">{fine.vehicleNo}</td>
-                                                    <td className="py-3 px-3">{fine.issueDate}</td>
+                                                    <td className="py-3 px-3 font-semibold text-blue-800">{fine.refNo}</td>
+                                                    <td className="py-3 px-3">{fine.provisions}</td>
+                                                    <td className="py-3 px-3 uppercase">{fine.vehicleNo}</td>
+                                                    <td className="py-3 px-3">{fine.issuedDate}</td>
                                                     <td className="py-3 px-3">{fine.expireDate}</td>
                                                     <td className="py-3 px-3">{fine.courtDate}</td>
-                                                    <td className="py-3 px-3">{fine.amount}</td>
+                                                    <td className="py-3 px-3 font-bold">{(parseFloat(fine.totalAmount) || 0).toFixed(2)}</td>
                                                 </tr>
                                             ))}
-                                            {pendingFines.length === 0 && (
+                                            {!loading && filteredFines.length === 0 && (
                                                 <tr>
-                                                    <td colSpan="8" className="py-4 text-center text-gray-500 text-sm">No data available in table</td>
+                                                    <td colSpan="8" className="py-12 text-center text-gray-500 bg-gray-50 flex flex-col items-center gap-2">
+                                                        <Megaphone size={32} className="text-gray-300" />
+                                                        <span>No pending fines found for your license. You're all clear!</span>
+                                                    </td>
                                                 </tr>
                                             )}
                                         </tbody>

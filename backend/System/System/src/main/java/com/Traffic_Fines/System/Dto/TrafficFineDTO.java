@@ -13,6 +13,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Data
 public class TrafficFineDTO {
+    private int refNo;
 
     private String policeId;
     private String licenseId;
