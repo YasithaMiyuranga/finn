@@ -297,7 +297,7 @@ export default function AddTrafficOfficer() {
                                         name="officerPassword" 
                                         value={formData.officerPassword} 
                                         onChange={handleInputChange} 
-                                        placeholder="Driver Password"  // Keeping as requested placeholder from image
+                                        placeholder="Traffic Officer Password" 
                                         style={{ width: '100%', padding: '0.375rem 0.75rem', fontSize: '1rem', lineHeight: 1.5, color: '#495057', backgroundColor: '#fff', border: '1px solid #ced4da', borderRadius: '0.25rem', outline: 'none' }} 
                                     />
                                 </div>

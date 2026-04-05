@@ -27,8 +27,6 @@ public class ViolationType {
     @Column(name = "amount")
     private int amount;
 
-    @OneToMany(mappedBy = "violationType", cascade = CascadeType.ALL)
-    private List<TrafficFine> trafficFine;
 
     @Column(name = "points")
     private int points;

@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Data
 public class Police_OfficersDTO {
+    private int id;
 
     @NotBlank(message = "fullName is required")
     @Size(max = 50, message = "fullName must be at most 50 characters")

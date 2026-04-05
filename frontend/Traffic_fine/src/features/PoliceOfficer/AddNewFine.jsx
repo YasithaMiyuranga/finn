@@ -32,8 +32,19 @@ export default function AddNewFine() {
         place: "",
         vehicleNo: "",
         provisionId: "",
-        amount: ""
+        amount: "",
+        issuedDate: new Date().toISOString().split('T')[0],
+        issuedTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        expireDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        courtDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        court: ""
     });
+
+    useEffect(() => {
+        if (officerDetails.court) {
+            setFineInfo(prev => ({ ...prev, court: officerDetails.court }));
+        }
+    }, [officerDetails.court]);
 
     useEffect(() => {
         // Fetch currently logged in police officer details
@@ -211,7 +222,7 @@ export default function AddNewFine() {
         console.log("--- Issuing Fine Debug Log ---");
         console.log("Driver Details:", driverDetails);
         console.log("Officer Details:", officerDetails);
-        console.log("Fine Info (Provision):", fineInfo);
+        console.log("Fine Info:", fineInfo);
 
         if (!driverDetails.driverId) {
             alert("Please search for a driver first using a valid license number.");
@@ -227,21 +238,21 @@ export default function AddNewFine() {
         }
 
         const payload = {
-            policeId: String(officerDetails.officerId || "P500000"),
-            licenseId: String(driverDetails.licenseId || searchQuery),
+            policeId: String(officerDetails.officerId),
+            licenseId: String(driverDetails.licenseId),
             vehicleNo: String(fineInfo.vehicleNo || "N/A"),
-            classOfVehicle: String(driverDetails.vehicleClass || "A1"),
+            classOfVehicle: String(driverDetails.vehicleClass || "Not specified"),
             place: String(fineInfo.place || "Unknown"),
-            issuedDate: new Date().toISOString().split('T')[0],
-            issuedTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ":00",
-            expireDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            court: String(officerDetails.court || "Kegalla"),
-            courtDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            provisions: String(fineInfo.provisionId || "101"),
+            issuedDate: fineInfo.issuedDate,
+            issuedTime: fineInfo.issuedTime.includes(':') && fineInfo.issuedTime.split(':').length === 2 ? fineInfo.issuedTime + ":00" : fineInfo.issuedTime,
+            expireDate: fineInfo.expireDate,
+            court: String(fineInfo.court || officerDetails.court || "Kegalla"),
+            courtDate: fineInfo.courtDate,
+            provisions: String(fineInfo.provisionId),
             totalAmount: parseFloat(fineInfo.amount) || 0,
             status: "pending",
 
-            // Real DB IDs for relations
+            // IDs for relations in backend (used for lookup, though not stored in main table)
             driverId: parseInt(driverDetails.driverId),
             officerId: parseInt(officerDetails.officerDbId),
             violationId: parseInt(fineInfo.provisionId)
@@ -436,7 +447,7 @@ export default function AddNewFine() {
                             </div>
                             <div style={{ display: 'flex', gap: '24px' }}>
                                 {renderInput("Police Station", "Police Station", true, "text", officerDetails.policeStation)}
-                                {renderInput("Court", "Court", true, "text", officerDetails.court)}
+                                {renderInput("Court", "Court", false, "text", fineInfo.court, (e) => setFineInfo({ ...fineInfo, court: e.target.value }))}
                             </div>
                         </div>
 
@@ -444,12 +455,12 @@ export default function AddNewFine() {
                         <div style={{ marginBottom: '32px' }}>
                             <h3 style={{ fontSize: '24px', fontWeight: '400', marginBottom: '16px' }}>Dates & Time</h3>
                             <div style={{ display: 'flex', gap: '24px', marginBottom: '16px' }}>
-                                {renderInput("Issue Date", "Issue Date", true, "date", new Date().toISOString().split('T')[0])}
-                                {renderInput("Issue Time", "Issue Time", true, "time", new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }))}
+                                {renderInput("Issue Date", "Issue Date", false, "date", fineInfo.issuedDate, (e) => setFineInfo({ ...fineInfo, issuedDate: e.target.value }))}
+                                {renderInput("Issue Time", "Issue Time", false, "time", fineInfo.issuedTime, (e) => setFineInfo({ ...fineInfo, issuedTime: e.target.value }))}
                             </div>
                             <div style={{ display: 'flex', gap: '24px' }}>
-                                {renderInput("Expire Date", "Expire Date", true, "date", new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
-                                {renderInput("Court Date", "Court Date", true, "date", new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])}
+                                {renderInput("Expire Date", "Expire Date", false, "date", fineInfo.expireDate, (e) => setFineInfo({ ...fineInfo, expireDate: e.target.value }))}
+                                {renderInput("Court Date", "Court Date", false, "date", fineInfo.courtDate, (e) => setFineInfo({ ...fineInfo, courtDate: e.target.value }))}
                             </div>
                         </div>
 

@@ -27,7 +27,7 @@ public class TrafficFine {
     @Column(name = "license_id", length = 20)
     private String licenseId;
 
-    @Column(name = "vehicle_no", length = 20)
+    @Column(name = "vehical_no", length = 20)
     private String vehicleNo;
 
     @Column(name = "class_of_vehicle", length = 20)
@@ -63,16 +63,4 @@ public class TrafficFine {
     @Column(name = "paid_date")
     private LocalDate paidDate;
 
-    // Keep Relationships for Dashboard logic
-    @ManyToOne
-    @JoinColumn(name = "driver_db_id") // internal link
-    private Driver driver;
-
-    @ManyToOne
-    @JoinColumn(name = "officer_db_id") // internal link
-    private Police_Officers policeOfficer;
-
-    @ManyToOne
-    @JoinColumn(name = "violation_id")
-    private ViolationType violationType;
 }

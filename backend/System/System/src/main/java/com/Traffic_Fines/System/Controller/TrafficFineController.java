@@ -16,6 +16,8 @@ import java.util.Map;
 
 
 
+@RestController
+@CrossOrigin
 @RequestMapping(value = "/api/traffic_fine")
 public class TrafficFineController {
 

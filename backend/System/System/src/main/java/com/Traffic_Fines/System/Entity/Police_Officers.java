@@ -59,8 +59,6 @@ public class Police_Officers {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-    @OneToMany(mappedBy = "policeOfficer", cascade = CascadeType.ALL)
-    private List<TrafficFine> trafficFine;
 
     // New relationship for grievance reports
     @OneToMany(mappedBy = "accusedOfficer", cascade = CascadeType.ALL)
