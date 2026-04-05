@@ -61,11 +61,7 @@ public class TrafficFineService {
         fine.setTotalAmount(dto.getTotalAmount());
         fine.setStatus(dto.getStatus() != null ? dto.getStatus() : "pending");
 
-        // Relationship linking
-        fine.setDriver(driver);
-        fine.setPoliceOfficer(officer);
-        fine.setViolationType(violation);
-
+        // Save Fine
         TrafficFine savedFine = trafficFineRepo.save(fine);
 
         // Also save to PendingFine for dashboard visibility

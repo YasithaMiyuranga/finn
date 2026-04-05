@@ -56,10 +56,10 @@ export default function ViewReportedFine() {
                     // Map fields
                     const mappedFines = allFines.map(f => {
                         return {
-                            referenceNo: f.refNo || "N/A",
+                            referenceNo: f.id || "N/A",
                             drivingLicenseNo: f.licenseId || "N/A",
                             provision: f.provisions || f.violationType?.violationName || "N/A",
-                            vehicleNo: f.vehicleNo || "N/A",
+                            vehicleNo: f.vehicalNo || f.vehicleNo || "N/A",
                             totalAmount: f.totalAmount ? parseFloat(f.totalAmount).toFixed(2) : "0.00",
                             issueDate: f.issuedDate || "N/A"
                         };
@@ -101,8 +101,8 @@ export default function ViewReportedFine() {
     const sidebarWidth = sidebarOpen ? '250px' : '65px';
 
     const filteredFines = fines.filter(f => 
-        f.referenceNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        f.drivingLicenseNo.toLowerCase().includes(searchTerm.toLowerCase())
+        String(f.referenceNo || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(f.drivingLicenseNo || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (

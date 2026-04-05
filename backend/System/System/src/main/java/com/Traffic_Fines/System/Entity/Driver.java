@@ -77,9 +77,6 @@ public class Driver {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
-    private List<TrafficFine> trafficFine;
 
     @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
