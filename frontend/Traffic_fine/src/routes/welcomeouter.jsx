@@ -223,7 +223,7 @@ const WelcomeOuter = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Fine Number:</span>
-                    <span className="font-medium">TF-2025-001234</span>
+                    <span className="font-medium">TF-2026-001234</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Amount:</span>
@@ -231,7 +231,7 @@ const WelcomeOuter = () => {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Due Date:</span>
-                    <span className="font-medium">2025-09-01</span>
+                    <span className="font-medium">2026-03-18</span>
                   </div>
                   <button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-medium hover:shadow-lg transition-all transform hover:scale-105">
                     Pay Now
@@ -400,7 +400,7 @@ const WelcomeOuter = () => {
           
           <div className="border-t border-white border-opacity-20 pt-8 text-center">
             <p className="text-blue-200">
-              © 2024 Sri Lanka Traffic Fine Payment System. All rights reserved. 
+              © 2026 Sri Lanka Traffic Fine Payment System. All rights reserved. 
               Government of Sri Lanka.
             </p>
           </div>
