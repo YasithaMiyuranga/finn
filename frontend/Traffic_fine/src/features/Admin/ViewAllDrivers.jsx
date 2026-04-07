@@ -317,12 +317,6 @@ export default function ViewAllDrivers() {
                                                         title="View">
                                                         <Info size={14} />
                                                     </button>
-                                                    {/* Edit */}
-                                                    <button onClick={() => { setEditData({ ...driver }); setEditModal(true); }}
-                                                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
-                                                        title="Edit">
-                                                        <Pencil size={14} />
-                                                    </button>
                                                     {/* Delete */}
                                                     <button onClick={() => { setDeleteId(driver.id); setDeleteModal(true); }}
                                                         style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
@@ -354,14 +348,18 @@ export default function ViewAllDrivers() {
                             <button onClick={() => setViewModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '20px' }}>×</button>
                         </div>
                         <div style={{ padding: '20px' }}>
-                            {[
-                                ['License ID', selectedDriver.licenseId],
+                             {[
+                                ['License ID', selectedDriver.licenseNumber],
                                 ['Full Name', `${selectedDriver.firstName || ''} ${selectedDriver.lastName || ''}`],
-                                ['Email', selectedDriver.email],
-                                ['License Issue Date', selectedDriver.licenseIssueDate],
-                                ['License Expire Date', selectedDriver.licenseExpireDate],
-                                ['Address', selectedDriver.homeAddress],
+                                ['Email', selectedDriver.user?.email || selectedDriver.email],
+                                ['License Issue Date', selectedDriver.licenseissue],
+                                ['License Expire Date', selectedDriver.licenseExpiry],
+                                ['Address', selectedDriver.address],
+                                ['Province', selectedDriver.province],
+                                ['District', selectedDriver.district],
+                                ['City', selectedDriver.city],
                                 ['Vehicle Class', selectedDriver.classOfVehicle],
+                                ['Registration Date', selectedDriver.registeredDate],
                             ].map(([label, val]) => (
                                 <div key={label} style={{ display: 'flex', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
                                     <span style={{ width: '160px', fontWeight: '600', color: '#374151', fontSize: '13px' }}>{label}</span>
