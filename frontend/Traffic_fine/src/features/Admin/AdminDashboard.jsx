@@ -231,10 +231,10 @@ export default function AdminDashboard() {
                 }}>
                     {/* Logo only - no hamburger in navbar */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ backgroundColor: '#dc2626', padding: '5px 7px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
-                            <Bell size={16} fill="white" color="white" />
+                        <div style={{ backgroundColor: 'white', width: '38px', height: '38px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <i className="fas fa-car text-blue-600 text-lg"></i>
                         </div>
-                        <span style={{ color: 'white', fontWeight: '800', fontSize: '18px', letterSpacing: '2px' }}>STFMS</span>
+                        <span style={{ color: 'white', fontWeight: '800', fontSize: '18px', letterSpacing: '2px' }}>eTRAFFIC</span>
                     </div>
 
                     {/* Settings Dropdown */}

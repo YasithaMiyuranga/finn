@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
     Menu, Settings, Megaphone, Hourglass, ListOrdered, 
     Coins, LayoutDashboard, FileText, CreditCard, 
-    Bell, User, ChevronDown, LogOut
+    Bell, User, ChevronDown, LogOut, Car
 } from 'lucide-react';
 import { 
     PieChart, Pie, Cell, AreaChart, Area, 
@@ -16,6 +16,15 @@ export default function DriverDashboard() {
     const [driverData, setDriverData] = useState(null);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [stats, setStats] = useState({
+        pendingFineCount: 0,
+        pendingFineAmount: 0,
+        paidFineCount: 0,
+        paidFineAmount: 0,
+    });
+    const [fineTrendData, setFineTrendData] = useState([]);
+    const [countPieData, setCountPieData] = useState([]);
+    const [amountPieData, setAmountPieData] = useState([]);
     
     // Adjusted sidebar width to match the PHP version perfectly
     const sidebarWidth = sidebarOpen ? '250px' : '70px';
@@ -43,61 +52,90 @@ export default function DriverDashboard() {
     };
 
     useEffect(() => {
-        const fetchDriverData = async () => {
+        const fetchAllData = async () => {
             const token = localStorage.getItem('token');
             const userId = localStorage.getItem('userId');
-            if (!userId) return;
+            if (!token || !userId) return;
 
             try {
-                const response = await fetch(`http://localhost:8080/api/Driver/getDriverByUserId/${userId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                // 1. Fetch Driver Profile
+                const driverRes = await fetch(`http://localhost:8080/api/Driver/getDriverByUserId/${userId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!response.ok) {
-                    throw new Error(`Server responded with status ${response.status}`);
-                }
-                const result = await response.json();
-                if (result.success) {
-                    setDriverData(result.data);
+                
+                if (!driverRes.ok) return;
+                const driverResult = await driverRes.json();
+                if (!driverResult.success) return;
+                
+                const driverInfo = driverResult.data;
+                setDriverData(driverInfo);
+                const licenseNo = driverInfo.licenseNumber;
+
+                // 2. Fetch All Traffic Fines
+                const finesRes = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (finesRes.ok) {
+                    const finesResult = await finesRes.json();
+                    const allFines = Array.isArray(finesResult.data) ? finesResult.data : (Array.isArray(finesResult) ? finesResult : []);
+                    
+                    // Filter for this driver
+                    const myFines = allFines.filter(f => String(f.licenseId) === String(licenseNo));
+                    
+                    // Calculate Stats
+                    let pendingCount = 0;
+                    let pendingAmt = 0;
+                    let paidCount = 0;
+                    let paidAmt = 0;
+                    
+                    const monthlyStats = Array(12).fill(0);
+                    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+                    myFines.forEach(f => {
+                        const amt = parseFloat(f.totalAmount || f.fineAmount) || 0;
+                        if (f.status?.toLowerCase() === 'paid') {
+                            paidCount++;
+                            paidAmt += amt;
+                        } else {
+                            pendingCount++;
+                            pendingAmt += amt;
+                        }
+                        
+                        // Monthly trend
+                        if (f.issuedDate) {
+                            const m = new Date(f.issuedDate).getMonth();
+                            if (m >= 0 && m < 12) monthlyStats[m]++;
+                        }
+                    });
+
+                    setStats({
+                        pendingFineCount: pendingCount,
+                        pendingFineAmount: pendingAmt,
+                        paidFineCount: paidCount,
+                        paidFineAmount: paidAmt
+                    });
+
+                    setFineTrendData(months.map((m, i) => ({ month: m, fines: monthlyStats[i] })));
+                    
+                    setCountPieData([
+                        { name: 'Pending Fine Count', value: pendingCount, color: '#f05050' },
+                        { name: 'Paid Fine Count', value: paidCount, color: '#1abc9c' },
+                    ]);
+                    
+                    setAmountPieData([
+                        { name: 'Paid Fine Amount (LKR)', value: paidAmt, color: '#4d2c80' },
+                        { name: 'Pending Fine Amount (LKR)', value: pendingAmt, color: '#e67e22' },
+                    ]);
                 }
             } catch (error) {
-                console.error("Error fetching driver data:", error);
+                console.error("Dashboard calculation error:", error);
             }
         };
-        fetchDriverData();
+
+        fetchAllData();
     }, []);
 
-    const stats = {
-        pendingFineCount: 1,
-        pendingFineAmount: 3000,
-        paidFineCount: 0,
-        paidFineAmount: 0,
-    };
-// ... trend data same ...
-    const fineTrendData = [
-        { month: 'January', fines: 0 },
-        { month: 'February', fines: 0 },
-        { month: 'March', fines: 1.0 },
-        { month: 'April', fines: 0 },
-        { month: 'May', fines: 0 },
-        { month: 'June', fines: 0 },
-        { month: 'August', fines: 0 },
-        { month: 'September', fines: 0 },
-        { month: 'October', fines: 0 },
-        { month: 'November', fines: 0 },
-        { month: 'December', fines: 0 },
-    ];
-// ... skip to return skip ...
-    const amountPieData = [
-        { name: 'Paid Fine Amount (LKR)', value: 0, color: '#4d2c80' },
-        { name: 'Pending Fine Amount (LKR)', value: 3000, color: '#e67e22' },
-    ];
-
-    const countPieData = [
-        { name: 'Pending Fine Count', value: 1, color: '#f05050' },
-        { name: 'Paid Fine Count', value: 0, color: '#1abc9c' },
-    ];
 
     const StatCard = ({ title, value, unit, icon: Icon, bgColor }) => (
         <div className={`${bgColor} text-white rounded-lg shadow-md p-6 flex flex-col items-center justify-center text-center relative overflow-hidden transition-transform hover:scale-105`}>
@@ -117,10 +155,10 @@ export default function DriverDashboard() {
                 <div className="flex items-center gap-4">
                     <Menu className="cursor-pointer hover:opacity-80" size={24} onClick={() => setSidebarOpen(!sidebarOpen)} />
                     <div className="flex items-center gap-2">
-                        <div className="bg-red-600 p-1.5 rounded-lg">
-                            <Bell size={20} className="text-white" fill="white" />
+                        <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-10 h-10">
+                            <i className="fas fa-car text-blue-600 text-xl"></i>
                         </div>
-                        <span className="text-xl font-bold tracking-wider">STFMS</span>
+                        <span className="text-white text-xl font-bold">eTRAFFIC</span>
                     </div>
                 </div>
                 

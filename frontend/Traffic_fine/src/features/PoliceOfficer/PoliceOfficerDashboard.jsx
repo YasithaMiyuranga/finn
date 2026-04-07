@@ -84,7 +84,7 @@ export default function PoliceOfficerDashboard() {
                         String(o.id) === String(userId)
                     );
                     if (me) {
-                        officerDbId = me.id;
+                        officerDbId = me.policeid || me.id;
                         setOfficerInfo({
                             officerId: me.policeid || me.id || "N/A",
                             policeStation: me.policeStation || "N/A",
@@ -105,7 +105,7 @@ export default function PoliceOfficerDashboard() {
                     else if (Array.isArray(data)) allFines = data;
 
                     let myFines = allFines.filter(f => {
-                        const fOfficerId = f.policeOfficer?.id || f.policeOfficer;
+                        const fOfficerId = f.policeOfficer?.id || f.policeOfficer?.policeid || f.policeId || f.police_id || f.officerId;
                         return String(fOfficerId) === String(officerDbId);
                     });
 
@@ -194,10 +194,10 @@ export default function PoliceOfficerDashboard() {
                     boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ backgroundColor: '#dc2626', padding: '6px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}>
-                            <Bell size={18} fill="white" color="white" />
+                        <div style={{ backgroundColor: 'white', width: '38px', height: '38px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <i className="fas fa-car text-blue-600 text-lg"></i>
                         </div>
-                        <span style={{ color: 'white', fontWeight: '800', fontSize: '20px', letterSpacing: '2px' }}>STFMS</span>
+                        <span style={{ color: 'white', fontWeight: '800', fontSize: '20px', letterSpacing: '2px' }}>eTRAFFIC</span>
                     </div>
                     <div style={{ position: 'relative' }}>
                         <button onClick={() => setIsSettingsOpen(!isSettingsOpen)} style={{
