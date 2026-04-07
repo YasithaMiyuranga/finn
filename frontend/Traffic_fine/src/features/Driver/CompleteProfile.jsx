@@ -12,13 +12,13 @@ export default function CompleteProfile() {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        gender: 'Male',
+        gender: '',
         licenseNumber: '',
         classOfVehicle: '',
         dateOfBirth: '',
         phone: '',
         address: '',
-        province: 'Southern',
+        province: '',
         district: '',
         city: '',
         licenseissue: '',
@@ -46,12 +46,13 @@ export default function CompleteProfile() {
                     setFormData({
                         firstName: d.firstName || '',
                         lastName: d.lastName || '',
-                        gender: d.gender || 'Male',
+                        gender: d.gender || '',
                         licenseNumber: String(d.licenseNumber) || '',
                         dateOfBirth: d.dateOfBirth || '',
                         phone: d.phone || '',
                         address: d.address || '',
-                        province: d.province || 'Southern',
+                        address: d.address || '',
+                        province: d.province || '',
                         district: d.district || '',
                         city: d.city || '',
                         licenseissue: d.licenseissue || '',
@@ -67,14 +68,34 @@ export default function CompleteProfile() {
         fetchExistingData();
     }, []);
 
-    const provinces = [
-        'Central', 'Eastern', 'North_Central', 'Northern', 
-        'North_Western', 'Sabaragamuwa', 'Southern', 'Uva', 'Western'
-    ];
+    const provinceToDistricts = {
+        'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+        'Eastern': ['Ampara', 'Batticaloa', 'Trincomalee'],
+        'North_Central': ['Anuradhapura', 'Polonnaruwa'],
+        'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Mullaitivu', 'Vavuniya'],
+        'North_Western': ['Kurunegala', 'Puttalam'],
+        'Sabaragamuwa': ['Kegalle', 'Ratnapura'],
+        'Southern': ['Galle', 'Hambantota', 'Matara'],
+        'Uva': ['Badulla', 'Moneragala'],
+        'Western': ['Colombo', 'Gampaha', 'Kalutara']
+    };
+
+    const provinces = Object.keys(provinceToDistricts);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        
+        if (name === 'province') {
+            // When province changes, reset district to empty
+            setFormData(prev => ({ 
+                ...prev, 
+                province: value,
+                district: '' 
+            }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
+
         if (errors[name]) {
             setErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -198,9 +219,11 @@ export default function CompleteProfile() {
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Gender</label>
                                             <select name="gender" value={formData.gender} onChange={handleInputChange}
+                                                    style={{ color: formData.gender ? '#1e293b' : '#94a3b8' }}
                                                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 outline-none text-sm appearance-none cursor-pointer">
-                                                <option value="Male">Male</option>
-                                                <option value="Female">Female</option>
+                                                <option value="" style={{ color: '#94a3b8' }}>Select Gender</option>
+                                                <option value="Male" style={{ color: '#1e293b' }}>Male</option>
+                                                <option value="Female" style={{ color: '#1e293b' }}>Female</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1">
@@ -267,26 +290,34 @@ export default function CompleteProfile() {
                                         <div className="md:col-span-1 space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Permanent Address</label>
                                             <input type="text" name="address" value={formData.address} onChange={handleInputChange}
-                                                   className={`w-full px-4 py-3 border ${errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 transition-all outline-none text-sm`} placeholder="123 Galle Rd" />
+                                                   className={`w-full px-4 py-3 border ${errors.address ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 transition-all outline-none text-sm`} placeholder="Permanent Address" />
                                             {errors.address && <p className="text-[10px] text-red-500 ml-1">{errors.address}</p>}
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Province</label>
                                             <select name="province" value={formData.province} onChange={handleInputChange}
+                                                    style={{ color: formData.province ? '#1e293b' : '#94a3b8' }}
                                                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 outline-none text-sm appearance-none cursor-pointer">
-                                                {provinces.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
+                                                <option value="" style={{ color: '#94a3b8' }}>Select Province</option>
+                                                {provinces.map(p => <option key={p} value={p} style={{ color: '#1e293b' }}>{p.replace('_', ' ')}</option>)}
                                             </select>
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">District</label>
-                                            <input type="text" name="district" value={formData.district} onChange={handleInputChange}
-                                                   className={`w-full px-4 py-3 border ${errors.district ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 transition-all outline-none text-sm`} placeholder="Galle" />
+                                            <select name="district" value={formData.district} onChange={handleInputChange}
+                                                    style={{ color: formData.district ? '#1e293b' : '#94a3b8' }}
+                                                    className={`w-full px-4 py-3 border ${errors.district ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 outline-none text-sm appearance-none cursor-pointer`}>
+                                                <option value="" style={{ color: '#94a3b8' }}>Select District</option>
+                                                {(provinceToDistricts[formData.province] || []).map(d => (
+                                                    <option key={d} value={d} style={{ color: '#1e293b' }}>{d}</option>
+                                                ))}
+                                            </select>
                                             {errors.district && <p className="text-[10px] text-red-500 ml-1">{errors.district}</p>}
                                         </div>
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">City</label>
                                             <input type="text" name="city" value={formData.city} onChange={handleInputChange}
-                                                   className={`w-full px-4 py-3 border ${errors.city ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 transition-all outline-none text-sm`} placeholder="Matara" />
+                                                   className={`w-full px-4 py-3 border ${errors.city ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 transition-all outline-none text-sm`} placeholder="City" />
                                             {errors.city && <p className="text-[10px] text-red-500 ml-1">{errors.city}</p>}
                                         </div>
                                     </div>

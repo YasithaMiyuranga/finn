@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Menu, ChevronDown, LogOut,
-    PlusCircle, History, FileText, Flag, Gauge, Bell, Search
+    Menu, ChevronDown, LogOut, PlusCircle, History, FileText, Flag, Gauge, Bell, Search, X
 } from 'lucide-react';
 
 export default function AddNewFine() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [selectedViolations, setSelectedViolations] = useState([]); // List of added violations
 
     const [searchQuery, setSearchQuery] = useState("");
     const [officerDetails, setOfficerDetails] = useState({
@@ -27,18 +27,41 @@ export default function AddNewFine() {
     });
 
     const [violationTypes, setViolationTypes] = useState([]);
-
     const [fineInfo, setFineInfo] = useState({
         place: "",
         vehicleNo: "",
-        provisionId: "",
-        amount: "",
         issuedDate: new Date().toISOString().split('T')[0],
         issuedTime: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
         expireDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         courtDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        court: ""
+        court: "",
+        currentSelectedViolation: "" // Temporary selection
     });
+
+    const handleAddViolation = () => {
+        if (!fineInfo.currentSelectedViolation) {
+            alert("Please select a violation first.");
+            return;
+        }
+
+        const violation = violationTypes.find(v => String(v.id) === String(fineInfo.currentSelectedViolation));
+        if (violation) {
+            // Check if already added
+            if (selectedViolations.find(v => v.id === violation.id)) {
+                alert("This violation is already added.");
+                return;
+            }
+
+            setSelectedViolations([...selectedViolations, violation]);
+            setFineInfo({ ...fineInfo, currentSelectedViolation: "" });
+        }
+    };
+
+    const handleRemoveViolation = (id) => {
+        setSelectedViolations(selectedViolations.filter(v => v.id !== id));
+    };
+
+    const totalFineAmount = selectedViolations.reduce((sum, v) => sum + (parseFloat(v.amount) || 0), 0);
 
     useEffect(() => {
         if (officerDetails.court) {
@@ -219,11 +242,6 @@ export default function AddNewFine() {
     );
 
     const handleIssueFine = async () => {
-        console.log("--- Issuing Fine Debug Log ---");
-        console.log("Driver Details:", driverDetails);
-        console.log("Officer Details:", officerDetails);
-        console.log("Fine Info:", fineInfo);
-
         if (!driverDetails.driverId) {
             alert("Please search for a driver first using a valid license number.");
             return;
@@ -232,57 +250,72 @@ export default function AddNewFine() {
             alert("Police officer details not fully loaded. Please refresh or re-login.");
             return;
         }
-        if (!fineInfo.provisionId) {
-            alert("Please select a provision (violation type).");
+        if (selectedViolations.length === 0) {
+            alert("Please add at least one violation.");
             return;
         }
 
-        const payload = {
-            policeId: String(officerDetails.officerId),
-            licenseId: String(driverDetails.licenseId),
-            vehicleNo: String(fineInfo.vehicleNo || "N/A"),
-            classOfVehicle: String(driverDetails.vehicleClass || "Not specified"),
-            place: String(fineInfo.place || "Unknown"),
-            issuedDate: fineInfo.issuedDate,
-            issuedTime: fineInfo.issuedTime.includes(':') && fineInfo.issuedTime.split(':').length === 2 ? fineInfo.issuedTime + ":00" : fineInfo.issuedTime,
-            expireDate: fineInfo.expireDate,
-            court: String(fineInfo.court || officerDetails.court || "Kegalla"),
-            courtDate: fineInfo.courtDate,
-            provisions: String(fineInfo.provisionId),
-            totalAmount: parseFloat(fineInfo.amount) || 0,
-            status: "pending",
+        console.log("--- Issuing Multiple Fines ---");
+        const token = localStorage.getItem('token');
+        let successCount = 0;
+        let failCount = 0;
 
-            // IDs for relations in backend (used for lookup, though not stored in main table)
-            driverId: parseInt(driverDetails.driverId),
-            officerId: parseInt(officerDetails.officerDbId),
-            violationId: parseInt(fineInfo.provisionId)
-        };
+        // Loop through each selected violation and send a separate request
+        for (const violation of selectedViolations) {
+            const payload = {
+                policeId: String(officerDetails.officerId),
+                licenseId: String(driverDetails.licenseId),
+                vehicleNo: String(fineInfo.vehicleNo || "N/A"),
+                classOfVehicle: String(driverDetails.vehicleClass || "Not specified"),
+                place: String(fineInfo.place || "Unknown"),
+                issuedDate: fineInfo.issuedDate,
+                issuedTime: fineInfo.issuedTime.includes(':') && fineInfo.issuedTime.split(':').length === 2 ? fineInfo.issuedTime + ":00" : fineInfo.issuedTime,
+                expireDate: fineInfo.expireDate,
+                court: String(fineInfo.court || officerDetails.court || "Kegalla"),
+                courtDate: fineInfo.courtDate,
+                provisions: String(violation.id || violation.violation_id || ""), // Send individual ID as string
+                totalAmount: parseFloat(violation.amount) || 0, // Send individual amount
+                status: "pending",
 
-        console.log("Final Payload to Backend:", payload);
+                // IDs for relations in backend
+                driverId: parseInt(driverDetails.driverId),
+                officerId: parseInt(officerDetails.officerDbId),
+                violationId: parseInt(violation.id)
+            };
 
-        try {
-            const token = localStorage.getItem('token');
-            const res = await fetch('http://localhost:8080/api/traffic_fine/saveTrafficFine', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
+            console.log(`Submitting fine for: ${violation.violationDescription}`, payload);
 
-            const result = await res.json().catch(() => ({}));
-            console.log("Backend Response JSON:", result);
+            try {
+                const res = await fetch('http://localhost:8080/api/traffic_fine/saveTrafficFine', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            if (res.ok && result.success !== false) {
-                alert("Fine issued successfully!");
-                navigate('/dashboard/policeofficer/view-reported-fine');
-            } else {
-                alert("Failed to issue fine: " + (result.message || res.statusText));
+                const result = await res.json().catch(() => ({}));
+                if (res.ok && result.success !== false) {
+                    successCount++;
+                } else {
+                    console.error(`Failed to issue fine for ${violation.violationDescription}:`, result);
+                    failCount++;
+                }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                failCount++;
             }
-        } catch (err) {
-            console.error("Fetch Error:", err);
-            alert("Network error issuing fine.");
+        }
+
+        if (failCount === 0) {
+            alert(`Successfully issued ${successCount} fine(s)!`);
+            navigate('/dashboard/policeofficer/view-reported-fine');
+        } else if (successCount > 0) {
+            alert(`Issued ${successCount} fine(s) successfully, but ${failCount} failed. Please check the reported fines.`);
+            navigate('/dashboard/policeofficer/view-reported-fine');
+        } else {
+            alert("Failed to issue fines. Please check your input validation.");
         }
     };
 
@@ -471,24 +504,111 @@ export default function AddNewFine() {
                                 {renderInput("Place", "Place", false, "text", fineInfo.place, (e) => setFineInfo({ ...fineInfo, place: e.target.value }))}
                                 {renderInput("Vehicle No", "Vehicle No", false, "text", fineInfo.vehicleNo, (e) => setFineInfo({ ...fineInfo, vehicleNo: e.target.value }))}
                             </div>
+                            <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-end', marginBottom: '24px' }}>
+                                <div style={{ flex: 2 }}>
+                                    {renderSelect(
+                                        "Select Provision",
+                                        [
+                                            { label: "Please Select Provision", value: "" },
+                                            ...violationTypes.map(v => ({
+                                                label: `${v.slLawReference} - ${v.violationDescription} (Rs. ${v.amount})`,
+                                                value: v.id
+                                            }))
+                                        ],
+                                        fineInfo.currentSelectedViolation,
+                                        (e) => setFineInfo({ ...fineInfo, currentSelectedViolation: e.target.value })
+                                    )}
+                                </div>
+                                <button 
+                                    onClick={handleAddViolation}
+                                    style={{
+                                        backgroundColor: '#28a745',
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '10px 24px',
+                                        borderRadius: '4px',
+                                        fontSize: '14px',
+                                        fontWeight: '600',
+                                        cursor: 'pointer',
+                                        height: '42px'
+                                    }}
+                                >
+                                    Add Violation
+                                </button>
+                            </div>
+
+                            {/* Violations Table */}
+                            {selectedViolations.length > 0 && (
+                                <div style={{ 
+                                    border: '1px solid #e2e8f0', 
+                                    borderRadius: '12px', 
+                                    overflow: 'hidden', 
+                                    marginBottom: '28px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}>
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff' }}>
+                                        <thead>
+                                            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Violation Description</th>
+                                                <th style={{ textAlign: 'right', padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount (LKR)</th>
+                                                <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {selectedViolations.map((v, idx) => (
+                                                <tr key={idx} style={{ 
+                                                    borderBottom: '1px solid #f1f5f9',
+                                                    transition: 'background-color 0.2s'
+                                                }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fdf2f2'} 
+                                                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                                    <td style={{ padding: '16px 20px', fontSize: '15px', color: '#1e293b', fontWeight: '500' }}>{v.violationDescription}</td>
+                                                    <td style={{ textAlign: 'right', padding: '16px 20px', fontSize: '15px', color: '#ef4444', fontWeight: '600' }}>{parseFloat(v.amount).toLocaleString()}.00</td>
+                                                    <td style={{ textAlign: 'center', padding: '16px 20px' }}>
+                                                        <button 
+                                                            onClick={() => handleRemoveViolation(v.id)}
+                                                            style={{ 
+                                                                backgroundColor: '#fee2e2',
+                                                                color: '#ef4444',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                margin: '0 auto'
+                                                            }}
+                                                            onMouseOver={(e) => {
+                                                                e.currentTarget.style.backgroundColor = '#ef4444';
+                                                                e.currentTarget.style.color = '#fff';
+                                                                e.currentTarget.style.transform = 'scale(1.1)';
+                                                            }}
+                                                            onMouseOut={(e) => {
+                                                                e.currentTarget.style.backgroundColor = '#fee2e2';
+                                                                e.currentTarget.style.color = '#ef4444';
+                                                                e.currentTarget.style.transform = 'scale(1)';
+                                                            }}
+                                                            title="Remove Violation"
+                                                        >
+                                                            <span style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1 }}>&times;</span>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            <tr style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
+                                                <td style={{ padding: '16px 20px', fontSize: '15px', color: '#475569' }}>Combined Total Amount</td>
+                                                <td style={{ textAlign: 'right', padding: '16px 20px', fontSize: '18px', color: '#2563eb' }}>Rs. {totalFineAmount.toLocaleString()}.00</td>
+                                                <td></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
                             <div style={{ display: 'flex', gap: '24px' }}>
-                                {renderSelect(
-                                    "Select Provision",
-                                    [
-                                        { label: "Please Select Provision", value: "" },
-                                        ...violationTypes.map(v => ({
-                                            label: `${v.slLawReference} - ${v.violationDescription}`,
-                                            value: v.id
-                                        }))
-                                    ],
-                                    fineInfo.provisionId,
-                                    (e) => {
-                                        const selectedId = e.target.value;
-                                        const found = violationTypes.find(v => String(v.id) === String(selectedId));
-                                        setFineInfo({ ...fineInfo, provisionId: selectedId, amount: found ? found.amount : "" });
-                                    }
-                                )}
-                                {renderInput("Total Fine Amount", "Amount", true, "text", fineInfo.amount)}
+                                {renderInput("Total Fine Amount (Auto)", "Total Amount will appear here", true, "text", `${totalFineAmount.toLocaleString()}.00`)}
                             </div>
                         </div>
 
