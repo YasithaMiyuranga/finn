@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Menu, ChevronDown, LogOut,
-    PlusCircle, History, FileText, Flag, Gauge, Bell, Search
+    Menu, ChevronDown, LogOut, PlusCircle, History, FileText, Flag, Gauge, Bell, Search, X
 } from 'lucide-react';
 
 export default function AddNewFine() {
@@ -540,34 +539,67 @@ export default function AddNewFine() {
 
                             {/* Violations Table */}
                             {selectedViolations.length > 0 && (
-                                <div style={{ border: '1px solid #dee2e6', borderRadius: '4px', overflow: 'hidden', marginBottom: '24px' }}>
+                                <div style={{ 
+                                    border: '1px solid #e2e8f0', 
+                                    borderRadius: '12px', 
+                                    overflow: 'hidden', 
+                                    marginBottom: '28px',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}>
                                     <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff' }}>
                                         <thead>
-                                            <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
-                                                <th style={{ textAlign: 'left', padding: '12px', fontSize: '14px' }}>Violation</th>
-                                                <th style={{ textAlign: 'right', padding: '12px', fontSize: '14px' }}>Amount (Rs.)</th>
-                                                <th style={{ textAlign: 'center', padding: '12px', fontSize: '14px' }}>Action</th>
+                                            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
+                                                <th style={{ textAlign: 'left', padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Violation Description</th>
+                                                <th style={{ textAlign: 'right', padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount (LKR)</th>
+                                                <th style={{ textAlign: 'center', padding: '16px 20px', fontSize: '14px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {selectedViolations.map((v, idx) => (
-                                                <tr key={idx} style={{ borderBottom: '1px solid #eee' }}>
-                                                    <td style={{ padding: '12px', fontSize: '14px' }}>{v.violationDescription}</td>
-                                                    <td style={{ textAlign: 'right', padding: '12px', fontSize: '14px' }}>{parseFloat(v.amount).toLocaleString()}.00</td>
-                                                    <td style={{ textAlign: 'center', padding: '12px' }}>
+                                                <tr key={idx} style={{ 
+                                                    borderBottom: '1px solid #f1f5f9',
+                                                    transition: 'background-color 0.2s'
+                                                }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#fdf2f2'} 
+                                                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
+                                                    <td style={{ padding: '16px 20px', fontSize: '15px', color: '#1e293b', fontWeight: '500' }}>{v.violationDescription}</td>
+                                                    <td style={{ textAlign: 'right', padding: '16px 20px', fontSize: '15px', color: '#ef4444', fontWeight: '600' }}>{parseFloat(v.amount).toLocaleString()}.00</td>
+                                                    <td style={{ textAlign: 'center', padding: '16px 20px' }}>
                                                         <button 
                                                             onClick={() => handleRemoveViolation(v.id)}
-                                                            style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: '18px' }}
-                                                            title="Remove"
+                                                            style={{ 
+                                                                backgroundColor: '#fee2e2',
+                                                                color: '#ef4444',
+                                                                border: 'none',
+                                                                borderRadius: '8px',
+                                                                width: '32px',
+                                                                height: '32px',
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                cursor: 'pointer',
+                                                                transition: 'all 0.2s',
+                                                                margin: '0 auto'
+                                                            }}
+                                                            onMouseOver={(e) => {
+                                                                e.currentTarget.style.backgroundColor = '#ef4444';
+                                                                e.currentTarget.style.color = '#fff';
+                                                                e.currentTarget.style.transform = 'scale(1.1)';
+                                                            }}
+                                                            onMouseOut={(e) => {
+                                                                e.currentTarget.style.backgroundColor = '#fee2e2';
+                                                                e.currentTarget.style.color = '#ef4444';
+                                                                e.currentTarget.style.transform = 'scale(1)';
+                                                            }}
+                                                            title="Remove Violation"
                                                         >
-                                                            &times;
+                                                            <span style={{ fontSize: '20px', fontWeight: 'bold', lineHeight: 1 }}>&times;</span>
                                                         </button>
                                                     </td>
                                                 </tr>
                                             ))}
-                                            <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
-                                                <td style={{ padding: '12px', fontSize: '14px' }}>Total Amount</td>
-                                                <td style={{ textAlign: 'right', padding: '12px', fontSize: '16px', color: '#007bff' }}>{totalFineAmount.toLocaleString()}.00</td>
+                                            <tr style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
+                                                <td style={{ padding: '16px 20px', fontSize: '15px', color: '#475569' }}>Combined Total Amount</td>
+                                                <td style={{ textAlign: 'right', padding: '16px 20px', fontSize: '18px', color: '#2563eb' }}>Rs. {totalFineAmount.toLocaleString()}.00</td>
                                                 <td></td>
                                             </tr>
                                         </tbody>
