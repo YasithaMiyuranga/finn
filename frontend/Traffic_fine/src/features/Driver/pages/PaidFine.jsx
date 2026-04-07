@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
     Menu, Settings, Megaphone, Hourglass, ListOrdered, 
     Coins, LayoutDashboard, FileText, CreditCard, 
-    Bell, User, ChevronDown, LogOut, Info
+    Bell, User, ChevronDown, LogOut, Info, Car
 } from 'lucide-react';
 
 export default function PaidFine() {
@@ -46,10 +46,10 @@ export default function PaidFine() {
                 <div className="flex items-center gap-4">
                     <Menu className="cursor-pointer hover:opacity-80" size={24} onClick={() => setSidebarOpen(!sidebarOpen)} />
                     <div className="flex items-center gap-2">
-                        <div className="bg-red-600 p-1.5 rounded-lg">
-                            <Bell size={20} className="text-white" fill="white" />
+                        <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-10 h-10">
+                            <i className="fas fa-car text-blue-600 text-xl"></i>
                         </div>
-                        <span className="text-xl font-bold tracking-wider">STFMS</span>
+                        <span className="text-white text-xl font-bold">eTRAFFIC</span>
                     </div>
                 </div>
                 

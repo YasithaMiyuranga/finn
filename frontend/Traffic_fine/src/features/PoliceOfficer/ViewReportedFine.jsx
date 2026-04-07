@@ -31,15 +31,22 @@ export default function ViewReportedFine() {
                         String(o.userId) === String(userId) || 
                         String(o.user) === String(userId) || 
                         (o.user && String(o.user.id || o.user.userId || o.user) === String(userId)) ||
-                        String(o.id) === String(userId)
+                        String(o.id) === String(userId) ||
+                        String(o.policeid) === String(userId)
                     );
-                    if (me) officerDbId = me.id;
+                    if (me) {
+                        // Use the badge number (policeid) as the primary identifier for matching fines 
+                        // as seen in the traffic_fine table screenshot (e.g. 1212311)
+                        officerDbId = me.policeid || me.id;
+                    }
                 }
 
                 // 2. Fetch traffic fines
                 const res = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+
+                console.log("Logged-in Officer DB ID:", officerDbId);
 
                 if (res.ok) {
                     const data = await res.json();
@@ -50,12 +57,30 @@ export default function ViewReportedFine() {
                         allFines = data;
                     }
 
-                    // Show ALL fines to verify database saving
-                    console.log("All fines from DB:", allFines);
+                    // Filter fines to only show those belonging to the logged-in officer
+                    const myFines = allFines.filter(f => {
+                        // Exhaustive check for officer ID in various possible locations
+                        const fOfficerObj = f.policeOfficer || f.police_officer || {};
+                        const fOfficerId = (typeof fOfficerObj === 'object') 
+                            ? (fOfficerObj.policeid || fOfficerObj.id || fOfficerObj.officerId)
+                            : fOfficerObj;
+                        
+                        // Check policeId or police_id field directly from backend response
+                        const directOfficerId = f.policeId || f.police_id || f.officerId;
+                        
+                        const finalOfficerId = fOfficerId || directOfficerId;
+
+                        console.log(`Checking fine ${f.refNo} | Found Officer ID:`, finalOfficerId, "Matching with:", officerDbId);
+                        
+                        return String(finalOfficerId) === String(officerDbId);
+                    });
+
+                    console.log("My filtered fines count:", myFines.length);
 
                     // Map fields
-                    const mappedFines = allFines.map(f => {
+                    const mappedFines = myFines.map(f => {
                         return {
+                            id: f.id,
                             referenceNo: f.refNo || "N/A",
                             drivingLicenseNo: f.licenseId || "N/A",
                             provision: f.provisions || f.violationType?.violationName || "N/A",
@@ -170,10 +195,10 @@ export default function ViewReportedFine() {
                     color: 'white'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <div style={{ backgroundColor: '#dc3545', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                            <Bell size={16} color="white" />
+                        <div style={{ backgroundColor: 'white', width: '38px', height: '38px', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <i className="fas fa-car text-blue-600 text-lg"></i>
                         </div>
-                        <span style={{ fontWeight: 'bold', fontSize: '20px', letterSpacing: '1px' }}>STFMS</span>
+                        <span style={{ fontWeight: 'bold', fontSize: '20px', letterSpacing: '1px', color: 'white' }}>eTRAFFIC</span>
                     </div>
 
                     <div style={{ position: 'relative' }}>

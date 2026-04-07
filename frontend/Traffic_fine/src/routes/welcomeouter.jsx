@@ -248,7 +248,7 @@ const WelcomeOuter = () => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Why Choose eTRAFFIC?
+              Why Choose FFICeTRA?
             </h2>
             <p className="text-xl text-blue-200 max-w-3xl mx-auto">
               Experience the future of traffic fine management with our cutting-edge platform

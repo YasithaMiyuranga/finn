@@ -1,15 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     Menu, Settings, Megaphone, Hourglass, ListOrdered, 
     Coins, LayoutDashboard, FileText, CreditCard, 
-    Bell, User, ChevronDown, LogOut
+    Bell, User, ChevronDown, LogOut, Info, Car
 } from 'lucide-react';
 
 export default function ViolationDetails() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [violations, setViolations] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     
     // Adjusted sidebar width to match the PHP version perfectly
     const sidebarWidth = sidebarOpen ? '250px' : '70px';
@@ -35,18 +38,43 @@ export default function ViolationDetails() {
         navigate('/auth/login');
     };
 
-    // Dummy data mimicking the PHP table screenshot
-    const violations = [
-        { id: "100", act: "Section 32", provision: "Revenue License to be displayed on motor vehicles and produced when required.", amount: "1500.00" },
-        { id: "102", act: "Section 128B", provision: "Driving a special purpose vehicle without obtaining a licence.", amount: "1000.00" },
-        { id: "103", act: "Section 128A", provision: "Failure to obtain authorization to drive a vehicle loaded with chemicals, hazardous waste, &e.", amount: "2000.00" },
-        { id: "104", act: "section 130", provision: "Failure to have a Licence to drive a specific class of vehiceles.", amount: "1000.00" },
-        { id: "105", act: "Section 135", provision: "Failure to carry a Driving Licence when driving.", amount: "2000.00" },
-        { id: "106", act: "Section 139A", provision: "Driving a special purpose vehicle without obtaining a licence", amount: "2000.00" },
-        { id: "107", act: "Section 148", provision: "Failure to comply with road rules.", amount: "2000.00" },
-        { id: "108", act: "Section 140 and 141", provision: "Not compliance with Speed limits provisions.", amount: "3000.00" },
-        { id: "109", act: "Section 155A", provision: "Excessive emission of smoke &c.", amount: "1000.00" },
-    ];
+    useEffect(() => {
+        const fetchViolations = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:8080/api/Violation/getViolationTypes', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        const mappedData = result.data.map(item => ({
+                            id: item.id || '',
+                            act: item.slLawReference || '',
+                            provision: item.violationDescription || '',
+                            amount: item.amount ? parseFloat(item.amount).toFixed(2) : "0.00"
+                        }));
+                        setViolations(mappedData);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching violations:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchViolations();
+    }, []);
+
+    const filteredViolations = violations.filter(v =>
+        v.act.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.provision.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        v.id.toString().includes(searchTerm)
+    );
 
     return (
         <div className="min-h-screen bg-[#f4f6f9] flex flex-col">
@@ -55,10 +83,10 @@ export default function ViolationDetails() {
                 <div className="flex items-center gap-4">
                     <Menu className="cursor-pointer hover:opacity-80" size={24} onClick={() => setSidebarOpen(!sidebarOpen)} />
                     <div className="flex items-center gap-2">
-                        <div className="bg-red-600 p-1.5 rounded-lg">
-                            <Bell size={20} className="text-white" fill="white" />
+                        <div className="bg-white p-1.5 rounded-full flex items-center justify-center w-10 h-10">
+                            <i className="fas fa-car text-blue-600 text-xl"></i>
                         </div>
-                        <span className="text-xl font-bold tracking-wider">STFMS</span>
+                        <span className="text-white text-xl font-bold">eTRAFFIC</span>
                     </div>
                 </div>
                 
@@ -153,6 +181,8 @@ export default function ViolationDetails() {
                                         <label className="text-sm text-gray-600">Search:</label>
                                         <input 
                                             type="text" 
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
                                             className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-400"
                                         />
                                     </div>
@@ -169,8 +199,12 @@ export default function ViolationDetails() {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {violations.length > 0 ? (
-                                                violations.map((v, index) => (
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan="4" className="py-8 text-center text-gray-500 text-sm font-medium animate-pulse">Loading violation details...</td>
+                                                </tr>
+                                            ) : filteredViolations.length > 0 ? (
+                                                filteredViolations.map((v, index) => (
                                                     <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
                                                         <td className="py-3 px-3">{v.id}</td>
                                                         <td className="py-3 px-3">{v.act}</td>
@@ -180,7 +214,7 @@ export default function ViolationDetails() {
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="4" className="py-4 text-center text-gray-500 text-sm font-medium">No data available in table</td>
+                                                    <td colSpan="4" className="py-8 text-center text-gray-500 text-sm font-medium">No violation data found.</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -197,7 +231,7 @@ export default function ViolationDetails() {
                                 
                                 <div className="flex justify-between items-center mt-4">
                                     <div className="text-sm text-gray-600">
-                                        Showing 1 to {violations.length} of {violations.length} entries
+                                        Showing {filteredViolations.length > 0 ? 1 : 0} to {filteredViolations.length} of {filteredViolations.length} entries
                                     </div>
                                     <div className="flex border border-gray-300 rounded text-sm overflow-hidden shadow-sm">
                                         <button className="px-3 py-1.5 text-gray-500 bg-white hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
