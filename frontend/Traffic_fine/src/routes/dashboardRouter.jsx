@@ -15,7 +15,7 @@ import PendingFine from '../features/Driver/pages/PendingFine';
 import PaidFine from '../features/Driver/pages/PaidFine';
 import DriverViolationDetails from '../features/Driver/pages/ViolationDetails'; // Renamed to avoid collision with Admin's ViolationDetails
 import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
-import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
+// import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
 import ViewAllDrivers from '../features/Admin/ViewAllDrivers';
 import AddTrafficOfficer from '../features/Admin/AddTrafficOfficer';
@@ -37,7 +37,7 @@ const DashboardRouter = () => {
             <Route path="/driver/paid-fine" element={<PaidFine />} />
             <Route path="/driver/violation-details" element={<DriverViolationDetails />} />
             <Route path="/user" element={<GeneralUserDashboard />} />
-            <Route path="/oic" element={<PoliceOICDashboard />} />
+            {/* <Route path="/oic" element={<PoliceOICDashboard />} /> */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/add-traffic-officer" element={<AddTrafficOfficer />} />
             <Route path="/admin/view-all-traffic-officers" element={<ViewAllTrafficOfficers />} />
