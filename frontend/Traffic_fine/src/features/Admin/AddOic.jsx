@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Menu, UserPlus, Users, ChevronDown, LogOut,
+    Menu, Users, ChevronDown, LogOut,
     Bell, CheckSquare, Pause, ShieldCheck, MapPin
 } from 'lucide-react';
 
@@ -22,6 +22,20 @@ export default function AddOic() {
         district: '',
         city: ''
     });
+
+    const provinceToDistricts = {
+        'Central': ['Kandy', 'Matale', 'Nuwara Eliya'],
+        'Eastern': ['Ampara', 'Batticaloa', 'Trincomalee'],
+        'North_Central': ['Anuradhapura', 'Polonnaruwa'],
+        'Northern': ['Jaffna', 'Kilinochchi', 'Mannar', 'Mullaitivu', 'Vavuniya'],
+        'North_Western': ['Kurunegala', 'Puttalam'],
+        'Sabaragamuwa': ['Kegalle', 'Ratnapura'],
+        'Southern': ['Galle', 'Hambantota', 'Matara'],
+        'Uva': ['Badulla', 'Moneragala'],
+        'Western': ['Colombo', 'Gampaha', 'Kalutara']
+    };
+
+    const provinces = Object.keys(provinceToDistricts);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -44,7 +58,7 @@ export default function AddOic() {
         },
         {
             id: 'add-oic',
-            label: 'Add Oic',
+            label: 'Add Police Oic',
             icon: <ShieldCheck size={22} />
         },
         { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
@@ -73,7 +87,12 @@ export default function AddOic() {
     };
 
     const handleInputChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const { name, value } = e.target;
+        if (name === 'province') {
+            setFormData({ ...formData, province: value, district: '' });
+        } else {
+            setFormData({ ...formData, [name]: value });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -240,13 +259,8 @@ export default function AddOic() {
 
                     <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
                         <form onSubmit={handleSubmit}>
-                            {/* Personal Details Section */}
+                            {/* Form Body */}
                             <div style={{ padding: '24px', borderBottom: '1px solid #f3f4f6' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', color: '#1f2937' }}>
-                                    <UserPlus size={20} className="text-blue-600" />
-                                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Personal Details</h3>
-                                </div>
-                                
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Service Number</label>
@@ -272,32 +286,41 @@ export default function AddOic() {
                                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Confirm Password</label>
                                         <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleInputChange} placeholder="********" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none' }} required />
                                     </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Registered Date</label>
-                                        <input type="date" value={todayDate} disabled style={{ width: '100%', padding: '10px 12px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', color: '#6b7280' }} />
-                                    </div>
                                 </div>
                             </div>
 
                             {/* Police Station Details Section */}
-                            <div style={{ padding: '24px', backgroundColor: '#fafafa' }}>
+                            <div style={{ padding: '24px', backgroundColor: '#fafafa', borderBottom: '1px solid #f3f4f6' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px', color: '#1f2937' }}>
                                     <MapPin size={20} className="text-green-600" />
                                     <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>Police Station Details</h3>
                                 </div>
 
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Officer Rank</label>
-                                        <input type="text" name="officerRank" value={formData.officerRank} onChange={handleInputChange} placeholder="Ex: IP, CI, ASP" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none' }} required />
+                                        <select name="officerRank" value={formData.officerRank} onChange={handleInputChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', backgroundColor: 'white' }} required>
+                                            <option value="">Select Rank</option>
+                                            <option value="IP">IP</option>
+                                            <option value="CI">CI</option>
+                                            <option value="ASP">ASP</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Province</label>
-                                        <input type="text" name="province" value={formData.province} onChange={handleInputChange} placeholder="Ex: Western" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none' }} required />
+                                        <select name="province" value={formData.province} onChange={handleInputChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', backgroundColor: 'white' }} required>
+                                            <option value="">Select Province</option>
+                                            {provinces.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
+                                        </select>
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>District</label>
-                                        <input type="text" name="district" value={formData.district} onChange={handleInputChange} placeholder="Ex: Colombo" style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none' }} required />
+                                        <select name="district" value={formData.district} onChange={handleInputChange} style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', outline: 'none', backgroundColor: 'white' }} required disabled={!formData.province}>
+                                            <option value="">Select District</option>
+                                            {(provinceToDistricts[formData.province] || []).map(d => (
+                                                <option key={d} value={d}>{d}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>City</label>
@@ -306,10 +329,17 @@ export default function AddOic() {
                                 </div>
                             </div>
 
-                            <div style={{ padding: '24px', textAlign: 'right', borderTop: '1px solid #f3f4f6' }}>
-                                <button type="submit" style={{ backgroundColor: '#2563eb', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={(e) => e.target.style.backgroundColor='#1d4ed8'} onMouseOut={(e) => e.target.style.backgroundColor='#2563eb'}>
-                                    Register OIC
-                                </button>
+                            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div style={{ maxWidth: '300px' }}>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>Registered Date</label>
+                                    <input type="date" value={todayDate} disabled style={{ width: '100%', padding: '10px 12px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', color: '#6b7280' }} />
+                                </div>
+
+                                <div style={{ textAlign: 'left', marginTop: '10px' }}>
+                                    <button type="submit" style={{ backgroundColor: '#2563eb', color: 'white', padding: '12px 32px', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={(e) => e.target.style.backgroundColor='#1d4ed8'} onMouseOut={(e) => e.target.style.backgroundColor='#2563eb'}>
+                                        Add Police Oic
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>

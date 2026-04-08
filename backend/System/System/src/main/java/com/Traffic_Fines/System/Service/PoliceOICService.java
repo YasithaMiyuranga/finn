@@ -39,7 +39,6 @@ public class PoliceOICService {
             PoliceOIC oic = new PoliceOIC();
             oic.setPoliceid(policeOICDTO.getPoliceid());
             oic.setFullName(policeOICDTO.getFullName());
-            oic.setEmail(policeOICDTO.getEmail());
             oic.setPhone(policeOICDTO.getPhone());
             oic.setOfficerRank(policeOICDTO.getOfficerRank());
             oic.setProvince(policeOICDTO.getProvince());
@@ -57,7 +56,13 @@ public class PoliceOICService {
 
     public List<PoliceOICDTO> getAllPoliceOICs() {
         List<PoliceOIC> oicList = policeOICRepo.findAll();
-        return modelMapper.map(oicList, new TypeToken<List<PoliceOICDTO>>() {}.getType());
+        return oicList.stream().map(oic -> {
+            PoliceOICDTO dto = modelMapper.map(oic, PoliceOICDTO.class);
+            if (oic.getUser() != null) {
+                dto.setEmail(oic.getUser().getEmail());
+            }
+            return dto;
+        }).toList();
     }
 
     public Respons<Integer> deletePoliceOIC(int id) {
