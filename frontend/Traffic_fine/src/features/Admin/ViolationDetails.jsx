@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, Users, ChevronDown, LogOut,
-    Bell, Pencil, Trash2, CheckSquare, Pause
+    Bell, Pencil, Trash2, CheckSquare, Pause, ShieldCheck
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -44,7 +44,6 @@ export default function ViolationDetails() {
 
             if (!response.ok) {
                 console.error('Failed to fetch violations:', response.status);
-                // If unauthorized or forbidden, maybe log out or show error
                 if (response.status === 401 || response.status === 403) {
                     alert('Session expired or unauthorized. Please login again.');
                 }
@@ -99,6 +98,11 @@ export default function ViolationDetails() {
                 </svg>
             )
         },
+        {
+            id: 'add-oic',
+            label: 'Add Oic',
+            icon: <ShieldCheck size={22} />
+        },
         { 
             id: 'view-all-traffic-officers', 
             label: 'View All Traffic Officers', 
@@ -125,6 +129,7 @@ export default function ViolationDetails() {
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
+        if (id === 'add-oic') navigate('/dashboard/admin/add-oic');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
         if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
         if (id === 'view-all-drivers') navigate('/dashboard/admin/view-all-drivers');
@@ -141,7 +146,6 @@ export default function ViolationDetails() {
         try {
             const token = localStorage.getItem('token');
             const payload = {
-                id: parseInt(formData.fineId) || 0,
                 slLawReference: formData.sectionOfAct,
                 violationDescription: formData.violationDescription,
                 amount: parseInt(formData.amount) || 0,
@@ -158,15 +162,7 @@ export default function ViolationDetails() {
                 body: JSON.stringify(payload)
             });
 
-            let data;
-            const textResponse = await response.text();
-            try {
-                data = JSON.parse(textResponse);
-            } catch (err) {
-                console.error("Non-JSON response received:", textResponse);
-                alert(`Error: ${response.status} ${response.statusText}. Your session might have expired. Please login again.`);
-                return;
-            }
+            const data = await response.json();
             
             if (response.ok && data.success) {
                 alert("Violation Details Added Successfully!");
@@ -206,13 +202,18 @@ export default function ViolationDetails() {
                 severityLevel: editData.severityLevel
             };
 
-            await fetch(`http://localhost:8080/api/Violation/updateViolationTypes/${editData.fineId}`, {
+            const res = await fetch(`http://localhost:8080/api/Violation/updateViolationTypes/${editData.fineId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
-            setEditModal(false);
-            fetchViolations();
+            const data = await res.json();
+            if (data.success) {
+                setEditModal(false);
+                fetchViolations();
+            } else {
+                alert(data.message);
+            }
         } catch (err) {
             console.error(err);
         }
@@ -221,12 +222,17 @@ export default function ViolationDetails() {
     const handleDelete = async () => {
         try {
             const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/Violation/deleteViolationTypes/${deleteId}`, {
+            const res = await fetch(`http://localhost:8080/api/Violation/deleteViolationTypes/${deleteId}`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setDeleteModal(false);
-            fetchViolations();
+            const data = await res.json();
+            if (data.success) {
+                setDeleteModal(false);
+                fetchViolations();
+            } else {
+                alert(data.message);
+            }
         } catch (err) {
             console.error(err);
         }

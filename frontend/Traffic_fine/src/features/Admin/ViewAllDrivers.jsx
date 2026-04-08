@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, UserPlus, Users, ChevronDown, LogOut,
-    Bell, Info, Pencil, Trash2, Search, X, CheckSquare, Pause
+    Bell, Info, Pencil, Trash2, Search, X, CheckSquare, Pause, ShieldCheck
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -68,12 +68,17 @@ export default function ViewAllDrivers() {
                 </svg>
             )
         },
+        {
+            id: 'add-oic',
+            label: 'Add Oic',
+            icon: <ShieldCheck size={22} />
+        },
         { 
             id: 'view-all-traffic-officers', 
             label: 'View All Traffic Officers', 
             icon: (
                 <svg viewBox="0 0 640 512" fill="currentColor" width="22" height="22">
-                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0 10.1 3.5l30.2 52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
+                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0-10.1-3.5l30.2 52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
                 </svg>
             )
         },
@@ -94,6 +99,7 @@ export default function ViewAllDrivers() {
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
+        if (id === 'add-oic') navigate('/dashboard/admin/add-oic');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
         if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
@@ -101,44 +107,9 @@ export default function ViewAllDrivers() {
         if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
     };
 
-    const filteredDrivers = drivers.filter(d =>
-        String(d.licenseNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ((d.firstName || '') + ' ' + (d.lastName || '')).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (d.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const handleEditSave = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/Driver/updateDriver/${editData.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(editData)
-            });
-            setEditModal(false);
-            fetchDrivers();
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const handleDelete = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/Driver/deleteDriver/${deleteId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setDeleteModal(false);
-            fetchDrivers();
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
     const handleCSV = () => {
         const headers = ['License ID', 'Driver Email', 'Driver Full Name', 'License Issue Date', 'License Expire Date'];
-        const rows = filteredDrivers.map(d => [
+        const rows = drivers.map(d => [
             d.licenseNumber || '-',
             d.user?.email || d.email || '-',
             `${d.firstName || ''} ${d.lastName || ''}`.trim() || '-',
@@ -158,7 +129,7 @@ export default function ViewAllDrivers() {
 
     const handleExcel = () => {
         const headers = ['License ID', 'Driver Email', 'Driver Full Name', 'License Issue Date', 'License Expire Date'];
-        const rows = filteredDrivers.map(d => [
+        const rows = drivers.map(d => [
             d.licenseNumber || '-',
             d.user?.email || d.email || '-',
             `${d.firstName || ''} ${d.lastName || ''}`.trim() || '-',
@@ -205,7 +176,7 @@ export default function ViewAllDrivers() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredDrivers.map(d => `
+                            ${drivers.map(d => `
                                 <tr>
                                     <td>${d.licenseNumber || '-'}</td>
                                     <td>${d.user?.email || d.email || '-'}</td>
@@ -234,15 +205,13 @@ export default function ViewAllDrivers() {
 
     const handlePDF = () => {
         const doc = new jsPDF('landscape');
-        
-        // Add Title
         doc.setFontSize(18);
         doc.text('View All Drivers | Motor Traffic Department', 14, 20);
         doc.setFontSize(10);
         doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
 
         const headers = [['License ID', 'Driver Email', 'Driver Full Name', 'License Issue Date', 'License Expire Date']];
-        const rows = filteredDrivers.map(d => [
+        const rows = drivers.map(d => [
             d.licenseNumber || '-',
             d.user?.email || d.email || '-',
             `${d.firstName || ''} ${d.lastName || ''}`.trim() || '-',
@@ -432,19 +401,21 @@ export default function ViewAllDrivers() {
                                 <tbody>
                                     {loading ? (
                                         <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading drivers...</td></tr>
-                                    ) : filteredDrivers.length === 0 ? (
+                                    ) : drivers.length === 0 ? (
                                         <tr><td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>No drivers found</td></tr>
-                                    ) : filteredDrivers.map((driver, idx) => (
+                                    ) : drivers.filter(d => 
+                                        String(d.licenseNumber || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        ((d.firstName || '') + ' ' + (d.lastName || '')).toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        (d.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+                                    ).map((driver, idx) => (
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                                    {/* View */}
                                                     <button onClick={() => { setSelectedDriver(driver); setViewModal(true); }}
                                                         style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                                                         title="View">
                                                         <Info size={14} />
                                                     </button>
-                                                    {/* Delete */}
                                                     <button onClick={() => { setDeleteId(driver.id); setDeleteModal(true); }}
                                                         style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                                                         title="Delete">

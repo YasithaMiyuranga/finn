@@ -4,7 +4,6 @@ import com.Traffic_Fines.System.Dto.PoliceOICDTO;
 import com.Traffic_Fines.System.Entity.PoliceOIC;
 import com.Traffic_Fines.System.Entity.User;
 import com.Traffic_Fines.System.Repository.PoliceOICRepo;
-
 import com.Traffic_Fines.System.Repository.UserRepo;
 import com.Traffic_Fines.System.Respons.Respons;
 import jakarta.transaction.Transactional;
@@ -17,74 +16,60 @@ import java.util.List;
 @Service
 @Transactional
 public class PoliceOICService {
+
     @Autowired
     private PoliceOICRepo policeOICRepo;
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     private UserRepo userRepo;
 
-    public Respons savePoliceOlC(PoliceOICDTO policeOICDTO) {
+    @Autowired
+    private ModelMapper modelMapper;
 
-        PoliceOIC policeOIC = policeOICRepo.findByUser(policeOICDTO.getUser()); // customise findByUser function
-        if (policeOIC != null) {
-            return new Respons<>(false, "already has data", null);
+    public Respons<Integer> savePoliceOIC(PoliceOICDTO policeOICDTO) {
+        try {
+            // 1. Create User first
+            User user = new User();
+            user.setEmail(policeOICDTO.getEmail());
+            user.setPassword(policeOICDTO.getPassword()); // In production, hash this!
+            user.setUserType(User.UserType.POLICEOIC); // Set user type using Enum
+            User savedUser = userRepo.save(user);
+
+            // 2. Create PoliceOIC
+            PoliceOIC oic = new PoliceOIC();
+            oic.setPoliceid(policeOICDTO.getPoliceid());
+            oic.setFullName(policeOICDTO.getFullName());
+            oic.setPhone(policeOICDTO.getPhone());
+            oic.setOfficerRank(policeOICDTO.getOfficerRank());
+            oic.setProvince(policeOICDTO.getProvince());
+            oic.setDistrict(policeOICDTO.getDistrict());
+            oic.setCity(policeOICDTO.getCity());
+            oic.setRegisteredDate(java.time.LocalDate.now());
+            oic.setUser(savedUser);
+
+            PoliceOIC savedOic = policeOICRepo.save(oic);
+            return new Respons<Integer>(true, "Police OIC Registered Successfully", savedOic.getId());
+        } catch (Exception e) {
+            return new Respons<Integer>(false, "Error: " + e.getMessage(), null);
         }
-
-        User user = userRepo.findById(policeOICDTO.getUser());
-        if(user ==null) return new Respons<>(false, "invalid id", null);
-
-        // save police office
-        PoliceOIC policeOICs = new PoliceOIC();
-
-        policeOICs.setFullName(policeOICDTO.getFullName());
-        policeOICs.setPoliceid(policeOICDTO.getPoliceid());
-        policeOICs.setDateOfBirth(policeOICDTO.getDateOfBirth());
-        policeOICs.setPhone(policeOICDTO.getPhone());
-        policeOICs.setAddress(policeOICDTO.getAddress());
-        policeOICs.setDistrict(policeOICDTO.getDistrict());
-        policeOICs.setPoliceStation(policeOICDTO.getPoliceStation());
-
-        policeOICs.setUser(user); //  update karana vidiyta methana save karanna ba  update kiyanne ekak save kiyanne thava ekak 2k 1k nemi
-
-        PoliceOIC savedPoliceOIC = policeOICRepo.save(policeOICs);
-
-        return new Respons<>(true, "Police police OIC add", savedPoliceOIC.getId());
     }
 
-    public List<PoliceOIC> getAllPoliceOICs(){
-        List<PoliceOIC>PoliceOICList=policeOICRepo.findAll();
-        return modelMapper.map(PoliceOICList,new TypeToken<List<PoliceOICDTO>>(){}.getType());
+    public List<PoliceOICDTO> getAllPoliceOICs() {
+        List<PoliceOIC> oicList = policeOICRepo.findAll();
+        return oicList.stream().map(oic -> {
+            PoliceOICDTO dto = modelMapper.map(oic, PoliceOICDTO.class);
+            if (oic.getUser() != null) {
+                dto.setEmail(oic.getUser().getEmail());
+            }
+            return dto;
+        }).toList();
     }
 
-    public Respons updatePoliceOIC(int id, PoliceOICDTO policeOICDTO) {
-        PoliceOIC policeOIC = policeOICRepo.findById(id);
-        if(policeOIC == null ){
-            return new Respons<>(false,"invalid id",null);
+    public Respons<Integer> deletePoliceOIC(int id) {
+        if (policeOICRepo.existsById(id)) {
+            policeOICRepo.deleteById(id);
+            return new Respons<Integer>(true, "OIC Deleted Successfully", id);
         }
-
-        policeOIC.setFullName(policeOICDTO.getFullName());
-        policeOIC.setPoliceid(policeOICDTO.getPoliceid());
-        policeOIC.setDateOfBirth(policeOICDTO.getDateOfBirth());
-        policeOIC.setPhone(policeOICDTO.getPhone());
-        policeOIC.setAddress(policeOICDTO.getAddress());
-        policeOIC.setDistrict(policeOICDTO.getDistrict());
-        policeOIC.setPoliceStation(policeOICDTO.getPoliceStation());
-
-        PoliceOIC savedPoliceOIC = policeOICRepo.save(policeOIC);
-
-        return new Respons<>(true,"update Police_Officers ",savedPoliceOIC .getId());
-
-    }
-
-    public Respons deletePoliceOIC (int id){
-        PoliceOIC policeOIC = policeOICRepo.findById(id);
-        if(policeOIC == null ){
-            return new Respons(false,"invalid id",null);
-        }
-        policeOICRepo.deleteById(id);
-        return new Respons(true,"delete police_officers",id);
+        return new Respons<Integer>(false, "OIC not found", null);
     }
 }
