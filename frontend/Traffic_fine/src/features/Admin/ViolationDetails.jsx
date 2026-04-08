@@ -4,6 +4,9 @@ import {
     Menu, Users, ChevronDown, LogOut,
     Bell, Pencil, Trash2, CheckSquare, Pause
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 export default function ViolationDetails() {
     const navigate = useNavigate();
@@ -21,6 +24,14 @@ export default function ViolationDetails() {
         points: '',
         severityLevel: 'LOW'
     });
+
+    // Edit Modal
+    const [editModal, setEditModal] = useState(false);
+    const [editData, setEditData] = useState({});
+
+    // Delete Modal
+    const [deleteModal, setDeleteModal] = useState(false);
+    const [deleteId, setDeleteId] = useState(null);
 
     const fetchViolations = async () => {
         try {
@@ -179,8 +190,176 @@ export default function ViolationDetails() {
 
     const filteredViolations = (violations || []).filter(v =>
         String(v.sectionOfAct || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(v.violationDescription || '').toLowerCase().includes(searchTerm.toLowerCase())
+        String(v.violationDescription || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(v.fineId || '').includes(searchTerm)
     );
+
+    const handleEditSave = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const payload = {
+                id: editData.fineId,
+                slLawReference: editData.sectionOfAct,
+                violationDescription: editData.violationDescription,
+                amount: parseInt(editData.amount) || 0,
+                points: parseInt(editData.points) || 0,
+                severityLevel: editData.severityLevel
+            };
+
+            await fetch(`http://localhost:8080/api/Violation/updateViolationTypes/${editData.fineId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            setEditModal(false);
+            fetchViolations();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await fetch(`http://localhost:8080/api/Violation/deleteViolationTypes/${deleteId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setDeleteModal(false);
+            fetchViolations();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleCSV = () => {
+        const headers = ['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount'];
+        const rows = filteredViolations.map(v => [
+            v.fineId || '-',
+            v.sectionOfAct || '-',
+            v.violationDescription || '-',
+            v.points || '0',
+            v.severityLevel || 'LOW',
+            v.amount || '0'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const csv = XLSX.utils.sheet_to_csv(worksheet);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "violation_details.csv");
+        link.click();
+    };
+
+    const handleExcel = () => {
+        const headers = ['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount'];
+        const rows = filteredViolations.map(v => [
+            v.fineId || '-',
+            v.sectionOfAct || '-',
+            v.violationDescription || '-',
+            v.points || '0',
+            v.severityLevel || 'LOW',
+            v.amount || '0'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Violations");
+        XLSX.writeFile(workbook, "violation_details.xlsx");
+    };
+
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <html>
+                <head>
+                    <title>Violation Details | Motor Traffic Department</title>
+                    <style>
+                        @page { size: landscape; margin: 20mm; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                        .header h1 { margin: 0; font-size: 24px; font-weight: normal; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 13px; }
+                        th { background-color: #ffffff; font-weight: bold; border-bottom: 2px solid #333; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .footer { margin-top: 20px; font-size: 10px; color: #888; text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Violation Details | Motor Traffic Department</h1>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fine ID</th>
+                                <th>Section</th>
+                                <th>Violation Description</th>
+                                <th>Points</th>
+                                <th>Severity</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredViolations.map(v => `
+                                <tr>
+                                    <td>${v.fineId || '-'}</td>
+                                    <td>${v.sectionOfAct || '-'}</td>
+                                    <td>${v.violationDescription || '-'}</td>
+                                    <td>${v.points || '0'}</td>
+                                    <td>${v.severityLevel || 'LOW'}</td>
+                                    <td>${v.amount || '0'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                    <script>
+                        window.onload = function() { 
+                            setTimeout(function() {
+                                window.print(); 
+                                window.close(); 
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
+    };
+
+    const handlePDF = () => {
+        const doc = new jsPDF('landscape');
+        doc.setFontSize(18);
+        doc.text('Violation Details | Motor Traffic Department', 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
+
+        const headers = [['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount']];
+        const rows = filteredViolations.map(v => [
+            v.fineId || '-',
+            v.sectionOfAct || '-',
+            v.violationDescription || '-',
+            v.points || '0',
+            v.severityLevel || 'LOW',
+            v.amount || '0'
+        ]);
+
+        autoTable(doc, {
+            startY: 35,
+            head: headers,
+            body: rows,
+            theme: 'grid',
+            headStyles: { fillColor: [14, 34, 56], textColor: [255, 255, 255] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save("violation_details.pdf");
+    };
 
     const getSeverityColor = (severity) => {
         switch(severity) {
@@ -405,9 +584,18 @@ export default function ViolationDetails() {
 
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                {['CSV', 'Excel', 'PDF', 'Print'].map(label => (
-                                    <button key={label} style={{ background: '#6c757d', color: 'white', border: 'none', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>{label}</button>
-                                ))}
+                                <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📄 CSV
+                                </button>
+                                <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📊 Excel
+                                </button>
+                                <button onClick={handlePDF} style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📕 PDF
+                                </button>
+                                <button onClick={handlePrint} style={{ backgroundColor: '#495057', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    🖨️ Print
+                                </button>
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -435,8 +623,20 @@ export default function ViolationDetails() {
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                                    <button style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '6px' }}><Pencil size={14} /></button>
-                                                    <button style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '6px' }}><Trash2 size={14} /></button>
+                                                    <button 
+                                                        onClick={() => { setEditData({ ...v }); setEditModal(true); }}
+                                                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '6px', cursor: 'pointer' }}
+                                                        title="Edit"
+                                                    >
+                                                        <Pencil size={14} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => { setDeleteId(v.fineId); setDeleteModal(true); }}
+                                                        style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '6px', cursor: 'pointer' }}
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '10px 16px' }}>{v.fineId}</td>
@@ -456,6 +656,121 @@ export default function ViolationDetails() {
                         </div>
                     </div>
 
+                    {/* ======== EDIT MODAL ======== */}
+                    {editModal && (
+                        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ background: 'white', borderRadius: '12px', width: '650px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+                                <div style={{ backgroundColor: '#28a745', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <h4 style={{ color: 'white', margin: 0, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Pencil size={18} /> Edit Violation Details
+                                    </h4>
+                                    <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '24px', lineHeight: 1 }}>×</button>
+                                </div>
+
+                                <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Fine ID</label>
+                                        <input
+                                            type="text"
+                                            value={editData.fineId || ''}
+                                            readOnly
+                                            style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: '14px', outline: 'none', cursor: 'not-allowed' }}
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Section</label>
+                                        <input
+                                            type="text"
+                                            value={editData.sectionOfAct || ''}
+                                            onChange={(e) => setEditData({ ...editData, sectionOfAct: e.target.value })}
+                                            style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5" style={{ gridColumn: 'span 2' }}>
+                                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Violation Description</label>
+                                        <input
+                                            type="text"
+                                            value={editData.violationDescription || ''}
+                                            onChange={(e) => setEditData({ ...editData, violationDescription: e.target.value })}
+                                            style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Points</label>
+                                        <input
+                                            type="number"
+                                            value={editData.points || ''}
+                                            onChange={(e) => setEditData({ ...editData, points: e.target.value })}
+                                            style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Severity</label>
+                                        <select
+                                            value={editData.severityLevel || 'LOW'}
+                                            onChange={(e) => setEditData({ ...editData, severityLevel: e.target.value })}
+                                            style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        >
+                                            <option value="LOW">LOW</option>
+                                            <option value="MEDIUM">MEDIUM</option>
+                                            <option value="HIGH">HIGH</option>
+                                            <option value="CRITICAL">CRITICAL</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1.5">
+                                        <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Amount</label>
+                                        <input
+                                            type="number"
+                                            value={editData.amount || ''}
+                                            onChange={(e) => setEditData({ ...editData, amount: e.target.value })}
+                                            style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ padding: '16px 24px', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end', gap: '12px', backgroundColor: '#fafafa' }}>
+                                    <button
+                                        onClick={handleEditSave}
+                                        style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 24px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
+                                    >
+                                        Update
+                                    </button>
+                                    <button
+                                        onClick={() => setEditModal(false)}
+                                        style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 24px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ======== DELETE MODAL ======== */}
+                    {deleteModal && (
+                        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div style={{ background: 'white', borderRadius: '12px', width: '420px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+                                <div style={{ backgroundColor: '#dc3545', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <h4 style={{ color: 'white', margin: 0, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <Trash2 size={18} /> Delete Violation
+                                    </h4>
+                                    <button onClick={() => setDeleteModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '24px', lineHeight: 1 }}>×</button>
+                                </div>
+                                <div style={{ padding: '24px 20px' }}>
+                                    <p style={{ margin: 0, fontSize: '15px', color: '#374151' }}>Are you sure you want to delete this violation record from the system?</p>
+                                </div>
+                                <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px', backgroundColor: '#fafafa' }}>
+                                    <button onClick={() => setDeleteModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
+                                    <button onClick={handleDelete} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Confirm Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
