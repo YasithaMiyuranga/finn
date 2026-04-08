@@ -103,6 +103,7 @@ export default function ViewAllDrivers() {
             )
         },
         { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
+        { id: 'view-all-oic', label: 'View All Police Oic', icon: <ShieldCheck size={22} /> },
         { 
             id: 'violation-details', 
             label: 'Violation Details', 
@@ -123,6 +124,7 @@ export default function ViewAllDrivers() {
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
         if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
+        if (id === 'view-all-oic') navigate('/dashboard/admin/view-all-police-oic');
         if (id === 'paid-fine-tickets') navigate('/dashboard/admin/paid-fine-tickets');
         if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
     };
