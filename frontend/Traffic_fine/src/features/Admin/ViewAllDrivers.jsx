@@ -49,6 +49,26 @@ export default function ViewAllDrivers() {
         }
     };
 
+    const handleDelete = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:8080/api/Driver/deleteDriver/${deleteId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDeleteModal(false);
+                fetchDrivers();
+            } else {
+                alert(data.message || 'Failed to delete driver');
+            }
+        } catch (err) {
+            console.error('Error deleting driver:', err);
+            alert('An error occurred while deleting the driver');
+        }
+    };
+
     const handleLogout = () => {
         localStorage.clear();
         navigate('/auth/login');

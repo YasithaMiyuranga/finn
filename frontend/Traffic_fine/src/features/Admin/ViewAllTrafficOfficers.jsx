@@ -52,6 +52,47 @@ export default function ViewAllTrafficOfficers() {
         }
     };
 
+    const handleEditSave = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:8080/api/police_officers/updatePoliceOfficer/${editData.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(editData)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setEditModal(false);
+                fetchOfficers();
+            } else {
+                alert(data.message || 'Failed to update officer');
+            }
+        } catch (err) {
+            console.error('Error updating officer:', err);
+            alert('An error occurred while updating the officer');
+        }
+    };
+
+    const handleDelete = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:8080/api/police_officers/deletePoliceOfficer/${deleteId}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDeleteModal(false);
+                fetchOfficers();
+            } else {
+                alert(data.message || 'Failed to delete officer');
+            }
+        } catch (err) {
+            console.error('Error deleting officer:', err);
+            alert('An error occurred while deleting the officer');
+        }
+    };
+
     const handleLogout = () => {
         localStorage.clear();
         navigate('/auth/login');
