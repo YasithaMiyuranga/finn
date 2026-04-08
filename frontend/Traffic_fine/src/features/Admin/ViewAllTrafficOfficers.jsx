@@ -4,6 +4,9 @@ import {
     Menu, Users, ChevronDown, LogOut,
     Bell, Pencil, Trash2, X, CheckSquare, Pause
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 export default function ViewAllTrafficOfficers() {
     const navigate = useNavigate();
@@ -138,6 +141,135 @@ export default function ViewAllTrafficOfficers() {
         }
     };
 
+    const handleCSV = () => {
+        const headers = ['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date'];
+        const rows = filteredOfficers.map(o => [
+            `P${String(o.policeid || '').padStart(5, '0')}`,
+            o.fullName || '-',
+            o.policeStation || '-',
+            o.court || '-',
+            o.userEmail || '-',
+            o.registeredDate || '-'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const csv = XLSX.utils.sheet_to_csv(worksheet);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "traffic_officers_list.csv");
+        link.click();
+    };
+
+    const handleExcel = () => {
+        const headers = ['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date'];
+        const rows = filteredOfficers.map(o => [
+            `P${String(o.policeid || '').padStart(5, '0')}`,
+            o.fullName || '-',
+            o.policeStation || '-',
+            o.court || '-',
+            o.userEmail || '-',
+            o.registeredDate || '-'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Officers List");
+        XLSX.writeFile(workbook, "traffic_officers_list.xlsx");
+    };
+
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <html>
+                <head>
+                    <title>View All Traffic Officers | Motor Traffic Department</title>
+                    <style>
+                        @page { size: landscape; margin: 20mm; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                        .header h1 { margin: 0; font-size: 24px; font-weight: normal; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 13px; }
+                        th { background-color: #ffffff; font-weight: bold; border-bottom: 2px solid #333; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .footer { margin-top: 20px; font-size: 10px; color: #888; text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>View All Traffic Officers | Motor Traffic Department</h1>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Officer ID</th>
+                                <th>Traffic Officer Name</th>
+                                <th>Police Station</th>
+                                <th>Court</th>
+                                <th>Traffic Officer Email</th>
+                                <th>Registered Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredOfficers.map(o => `
+                                <tr>
+                                    <td>P${String(o.policeid || '').padStart(5, '0')}</td>
+                                    <td>${o.fullName || '-'}</td>
+                                    <td>${o.policeStation || '-'}</td>
+                                    <td>${o.court || '-'}</td>
+                                    <td>${o.userEmail || '-'}</td>
+                                    <td>${o.registeredDate || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                    <script>
+                        window.onload = function() { 
+                            setTimeout(function() {
+                                window.print(); 
+                                window.close(); 
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
+    };
+
+    const handlePDF = () => {
+        const doc = new jsPDF('landscape');
+        doc.setFontSize(18);
+        doc.text('View All Traffic Officers | Motor Traffic Department', 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
+
+        const headers = [['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date']];
+        const rows = filteredOfficers.map(o => [
+            `P${String(o.policeid || '').padStart(5, '0')}`,
+            o.fullName || '-',
+            o.policeStation || '-',
+            o.court || '-',
+            o.userEmail || '-',
+            o.registeredDate || '-'
+        ]);
+
+        autoTable(doc, {
+            startY: 35,
+            head: headers,
+            body: rows,
+            theme: 'grid',
+            headStyles: { fillColor: [14, 34, 56], textColor: [255, 255, 255] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save("traffic_officers_list.pdf");
+    };
+
     const sidebarWidth = sidebarOpen ? '220px' : '60px';
 
     return (
@@ -262,20 +394,18 @@ export default function ViewAllTrafficOfficers() {
                         {/* Export Buttons */}
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                {[
-                                    { label: 'CSV', color: '#007bff', icon: '📄' },
-                                    { label: 'Excel', color: '#28a745', icon: '📊' },
-                                    { label: 'PDF', color: '#dc3545', icon: '📕' },
-                                    { label: 'Print', color: '#343a40', icon: '🖨️' },
-                                ].map(btn => (
-                                    <button key={btn.label} style={{
-                                        backgroundColor: btn.color, color: 'white', border: 'none',
-                                        borderRadius: '0.25rem', padding: '0.25rem 0.5rem', fontSize: '0.875rem',
-                                        fontWeight: '400', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
-                                    }} className="hover:opacity-90 transition-opacity">
-                                        <span style={{ fontSize: '12px', marginRight: '4px' }}>{btn.icon}</span> {btn.label}
-                                    </button>
-                                ))}
+                                <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📄 CSV
+                                </button>
+                                <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📊 Excel
+                                </button>
+                                <button onClick={handlePDF} style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📕 PDF
+                                </button>
+                                <button onClick={handlePrint} style={{ backgroundColor: '#495057', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    🖨️ Print
+                                </button>
                             </div>
 
                             {/* Search */}
