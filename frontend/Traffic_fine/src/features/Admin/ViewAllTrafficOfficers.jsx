@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Menu, Users, ChevronDown, LogOut,
-    Bell, Pencil, Trash2, X, CheckSquare, Pause
+    Menu, UserPlus, Users, ChevronDown, LogOut,
+    Bell, Pencil, Trash2, X, CheckSquare, Pause, ShieldCheck
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -34,21 +34,19 @@ export default function ViewAllTrafficOfficers() {
             const res = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Handle if there's no endpoint or it fails without crashing the UI
             if (res.ok) {
                 const data = await res.json();
                 if (data.success) {
                     setOfficers(data.data || []);
                 } else if (Array.isArray(data)) {
-                    setOfficers(data); // Support direct array return
+                    setOfficers(data);
                 }
             } else {
-                console.warn('Endpoint might not be quite ready or no data returned.');
                 setOfficers([]);
             }
         } catch (err) {
             console.error('Error fetching officers:', err);
-            setOfficers([]); // Fallback to empty
+            setOfficers([]);
         } finally {
             setLoading(false);
         }
@@ -73,12 +71,17 @@ export default function ViewAllTrafficOfficers() {
                 </svg>
             )
         },
+        {
+            id: 'add-oic',
+            label: 'Add Oic',
+            icon: <ShieldCheck size={22} />
+        },
         { 
             id: 'view-all-traffic-officers', 
             label: 'View All Traffic Officers', 
             icon: (
                 <svg viewBox="0 0 640 512" fill="currentColor" width="22" height="22">
-                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0 10.1 3.5l30.2 52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
+                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0-10.1 3.5l30.2 52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
                 </svg>
             )
         },
@@ -99,6 +102,7 @@ export default function ViewAllTrafficOfficers() {
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
+        if (id === 'add-oic') navigate('/dashboard/admin/add-oic');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
         if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
@@ -106,44 +110,9 @@ export default function ViewAllTrafficOfficers() {
         if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
     };
 
-    const filteredOfficers = (officers || []).filter(o =>
-        String(o.policeid || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(o.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (o.userEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const handleEditSave = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/police_officers/updatePoliceOfficer/${editData.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify(editData)
-            });
-            setEditModal(false);
-            fetchOfficers();
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const handleDelete = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            await fetch(`http://localhost:8080/api/police_officers/deletePoliceOfficer/${deleteId}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setDeleteModal(false);
-            fetchOfficers();
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
     const handleCSV = () => {
         const headers = ['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date'];
-        const rows = filteredOfficers.map(o => [
+        const rows = officers.map(o => [
             `P${String(o.policeid || '').padStart(5, '0')}`,
             o.fullName || '-',
             o.policeStation || '-',
@@ -164,7 +133,7 @@ export default function ViewAllTrafficOfficers() {
 
     const handleExcel = () => {
         const headers = ['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date'];
-        const rows = filteredOfficers.map(o => [
+        const rows = officers.map(o => [
             `P${String(o.policeid || '').padStart(5, '0')}`,
             o.fullName || '-',
             o.policeStation || '-',
@@ -213,7 +182,7 @@ export default function ViewAllTrafficOfficers() {
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredOfficers.map(o => `
+                            ${officers.map(o => `
                                 <tr>
                                     <td>P${String(o.policeid || '').padStart(5, '0')}</td>
                                     <td>${o.fullName || '-'}</td>
@@ -249,7 +218,7 @@ export default function ViewAllTrafficOfficers() {
         doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
 
         const headers = [['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date']];
-        const rows = filteredOfficers.map(o => [
+        const rows = officers.map(o => [
             `P${String(o.policeid || '').padStart(5, '0')}`,
             o.fullName || '-',
             o.policeStation || '-',
@@ -441,19 +410,21 @@ export default function ViewAllTrafficOfficers() {
                                 <tbody>
                                     {loading ? (
                                         <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>Loading officers...</td></tr>
-                                    ) : filteredOfficers.length === 0 ? (
+                                    ) : officers.length === 0 ? (
                                         <tr><td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>No officers found</td></tr>
-                                    ) : filteredOfficers.map((officer, idx) => (
+                                    ) : officers.filter(o => 
+                                        String(o.policeid || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        String(o.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        (o.userEmail || '').toLowerCase().includes(searchTerm.toLowerCase())
+                                    ).map((officer, idx) => (
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                                    {/* Edit */}
                                                     <button onClick={() => { setEditData({ ...officer }); setEditModal(true); }}
                                                         style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                                                         title="Edit">
                                                         <Pencil size={14} />
                                                     </button>
-                                                    {/* Delete */}
                                                     <button onClick={() => { setDeleteId(officer.id); setDeleteModal(true); }}
                                                         style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
                                                         title="Delete">
@@ -480,111 +451,39 @@ export default function ViewAllTrafficOfficers() {
             {editModal && (
                 <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ background: 'white', borderRadius: '12px', width: '650px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
-                        {/* Header */}
                         <div style={{ backgroundColor: '#28a745', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h4 style={{ color: 'white', margin: 0, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Pencil size={18} /> Edit Traffic Officer Details
-                            </h4>
-                            <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '24px', lineHeight: 1 }}>×</button>
+                            <h4 style={{ color: 'white', margin: 0, fontWeight: '700' }}>✏️ Edit Traffic Officer</h4>
+                            <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '24px' }}>×</button>
                         </div>
-
-                        {/* Form Body */}
                         <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                            {/* Officer ID - Locked */}
                             <div className="flex flex-col gap-1.5">
-                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Traffic Officer ID</label>
-                                <input
-                                    type="text"
-                                    value={editData.policeid ? `P${String(editData.policeid).padStart(5, '0')}` : ''}
-                                    readOnly
-                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: '14px', outline: 'none', cursor: 'not-allowed' }}
-                                />
+                                <label style={{ fontSize: '13px', fontWeight: '600' }}>Traffic Officer ID</label>
+                                <input type="text" value={editData.policeid ? `P${String(editData.policeid).padStart(5, '0')}` : ''} readOnly style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#eee' }} />
                             </div>
-
-                            {/* Email */}
                             <div className="flex flex-col gap-1.5">
-                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Traffic Officer Email</label>
-                                <input
-                                    type="email"
-                                    value={editData.userEmail || ''}
-                                    onChange={(e) => setEditData({ ...editData, userEmail: e.target.value })}
-                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
-                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                />
+                                <label style={{ fontSize: '13px', fontWeight: '600' }}>Traffic Officer Email</label>
+                                <input type="email" value={editData.userEmail || ''} onChange={(e) => setEditData({ ...editData, userEmail: e.target.value })} style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
                             </div>
-
-                            {/* Full Name */}
                             <div className="flex flex-col gap-1.5">
-                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Traffic Officer Name</label>
-                                <input
-                                    type="text"
-                                    value={editData.fullName || ''}
-                                    onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
-                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
-                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                />
+                                <label style={{ fontSize: '13px', fontWeight: '600' }}>Traffic Officer Name</label>
+                                <input type="text" value={editData.fullName || ''} onChange={(e) => setEditData({ ...editData, fullName: e.target.value })} style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
                             </div>
-
-                            {/* Police Station */}
                             <div className="flex flex-col gap-1.5">
-                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Police Station</label>
-                                <input
-                                    type="text"
-                                    value={editData.policeStation || ''}
-                                    onChange={(e) => setEditData({ ...editData, policeStation: e.target.value })}
-                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
-                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                />
+                                <label style={{ fontSize: '13px', fontWeight: '600' }}>Police Station</label>
+                                <input type="text" value={editData.policeStation || ''} onChange={(e) => setEditData({ ...editData, policeStation: e.target.value })} style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
                             </div>
-
-                            {/* Court */}
                             <div className="flex flex-col gap-1.5">
-                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Court</label>
-                                <input
-                                    type="text"
-                                    value={editData.court || ''}
-                                    onChange={(e) => setEditData({ ...editData, court: e.target.value })}
-                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
-                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                                />
+                                <label style={{ fontSize: '13px', fontWeight: '600' }}>Court</label>
+                                <input type="text" value={editData.court || ''} onChange={(e) => setEditData({ ...editData, court: e.target.value })} style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
                             </div>
-
-                            {/* Registered Date - Locked */}
-                            <div className="flex flex-col gap-1.5 relative">
-                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Registered Date</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={editData.registeredDate || ''}
-                                        readOnly
-                                        style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: '14px', outline: 'none', cursor: 'not-allowed' }}
-                                    />
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute right-3 top-2.5 w-4 h-4 text-gray-400">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                                    </svg>
-                                </div>
+                            <div className="flex flex-col gap-1.5">
+                                <label style={{ fontSize: '13px', fontWeight: '600' }}>Registered Date</label>
+                                <input type="text" value={editData.registeredDate || ''} readOnly style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#eee' }} />
                             </div>
                         </div>
-
-                        {/* Footer Buttons */}
-                        <div style={{ padding: '16px 24px', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end', gap: '12px', backgroundColor: '#fafafa' }}>
-                            <button
-                                onClick={handleEditSave}
-                                style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 24px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
-                                className="hover:opacity-90 transition-opacity"
-                            >
-                                Update
-                            </button>
-                            <button
-                                onClick={() => setEditModal(false)}
-                                style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 24px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
-                                className="hover:opacity-90 transition-opacity"
-                            >
-                                Close
-                            </button>
+                        <div style={{ padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button onClick={handleEditSave} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 20px', cursor: 'pointer', fontWeight: '600' }}>Update</button>
+                            <button onClick={() => setEditModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 20px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
                         </div>
                     </div>
                 </div>

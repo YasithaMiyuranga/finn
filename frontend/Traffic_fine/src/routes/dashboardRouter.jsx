@@ -19,6 +19,7 @@ import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
 import ViewAllDrivers from '../features/Admin/ViewAllDrivers';
 import AddTrafficOfficer from '../features/Admin/AddTrafficOfficer';
+import AddOic from '../features/Admin/AddOic';
 import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
 import ViolationDetails from '../features/Admin/ViolationDetails'; // Existing Admin ViolationDetails
 import PaidFineTickets from '../features/Admin/PaidFineTickets';
@@ -40,6 +41,7 @@ const DashboardRouter = () => {
             {/* <Route path="/oic" element={<PoliceOICDashboard />} /> */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/add-traffic-officer" element={<AddTrafficOfficer />} />
+            <Route path="/admin/add-oic" element={<AddOic />} />
             <Route path="/admin/view-all-traffic-officers" element={<ViewAllTrafficOfficers />} />
             <Route path="/admin/view-all-drivers" element={<ViewAllDrivers />} />
             <Route path="/admin/violation-details" element={<ViolationDetails />} />
