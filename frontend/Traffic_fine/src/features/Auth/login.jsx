@@ -83,7 +83,7 @@ export default function Login() {
               navigate('/dashboard/driver/complete-profile');
             }
           } else if (role === 'POLICEOIC') {
-            navigate('/dashboard/oic');
+            navigate('/dashboard/police-oic');
           } else if (role === 'USERS') {
             navigate('/dashboard/user');
           } else if (role === 'POLICEOFFICERS') {

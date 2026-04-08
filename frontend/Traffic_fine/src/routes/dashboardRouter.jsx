@@ -28,6 +28,12 @@ import PoliceOfficerDashboard from '../features/PoliceOfficer/PoliceOfficerDashb
 import AddNewFine from '../features/PoliceOfficer/AddNewFine';
 import ViewReportedFine from '../features/PoliceOfficer/ViewReportedFine';
 
+// Import Police OIC components
+import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
+import AddTrafficOfficerOIC from '../features/PoliceOIC/AddTrafficOfficer';
+import ViewAllTrafficOfficersOIC from '../features/PoliceOIC/ViewAllTrafficOfficers';
+import ViewAllDriversOIC from '../features/PoliceOIC/ViewAllDrivers';
+
 const DashboardRouter = () => {
     return (
         <Routes>
@@ -47,6 +53,13 @@ const DashboardRouter = () => {
             <Route path="/admin/violation-details" element={<ViolationDetails />} />
             <Route path="/admin/paid-fine-tickets" element={<PaidFineTickets />} />
             <Route path="/admin/pending-fine-tickets" element={<PendingFineTickets />} />
+
+            {/* Police OIC Routes */}
+            <Route path="/police-oic" element={<PoliceOICDashboard />} />
+            <Route path="/police-oic/add-traffic-officer" element={<AddTrafficOfficerOIC />} />
+            <Route path="/police-oic/view-all-traffic-officers" element={<ViewAllTrafficOfficersOIC />} />
+            <Route path="/police-oic/view-all-drivers" element={<ViewAllDriversOIC />} />
+
             <Route path="/policeofficer" element={<PoliceOfficerDashboard />} />
             <Route path="/policeofficer/add-new-fine" element={<AddNewFine />} />
             <Route path="/policeofficer/view-reported-fine" element={<ViewReportedFine />} />
