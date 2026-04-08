@@ -476,20 +476,115 @@ export default function ViewAllTrafficOfficers() {
                 </div>
             </div>
 
-            {/* ======== EDIT MODAL (Placeholder) ======== */}
+            {/* ======== EDIT MODAL ======== */}
             {editModal && (
                 <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div style={{ background: 'white', borderRadius: '12px', width: '500px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+                    <div style={{ background: 'white', borderRadius: '12px', width: '650px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+                        {/* Header */}
                         <div style={{ backgroundColor: '#28a745', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h4 style={{ color: 'white', margin: 0, fontWeight: '700' }}>✏️ Edit Traffic Officer Details</h4>
-                            <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '20px' }}>×</button>
+                            <h4 style={{ color: 'white', margin: 0, fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Pencil size={18} /> Edit Traffic Officer Details
+                            </h4>
+                            <button onClick={() => setEditModal(false)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '24px', lineHeight: 1 }}>×</button>
                         </div>
-                        <div style={{ padding: '20px' }}>
-                            <p>Edit functionality form goes here.</p>
+
+                        {/* Form Body */}
+                        <div style={{ padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                            {/* Officer ID - Locked */}
+                            <div className="flex flex-col gap-1.5">
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Traffic Officer ID</label>
+                                <input
+                                    type="text"
+                                    value={editData.policeid ? `P${String(editData.policeid).padStart(5, '0')}` : ''}
+                                    readOnly
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: '14px', outline: 'none', cursor: 'not-allowed' }}
+                                />
+                            </div>
+
+                            {/* Email */}
+                            <div className="flex flex-col gap-1.5">
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Traffic Officer Email</label>
+                                <input
+                                    type="email"
+                                    value={editData.userEmail || ''}
+                                    onChange={(e) => setEditData({ ...editData, userEmail: e.target.value })}
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                />
+                            </div>
+
+                            {/* Full Name */}
+                            <div className="flex flex-col gap-1.5">
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Traffic Officer Name</label>
+                                <input
+                                    type="text"
+                                    value={editData.fullName || ''}
+                                    onChange={(e) => setEditData({ ...editData, fullName: e.target.value })}
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                />
+                            </div>
+
+                            {/* Police Station */}
+                            <div className="flex flex-col gap-1.5">
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Police Station</label>
+                                <input
+                                    type="text"
+                                    value={editData.policeStation || ''}
+                                    onChange={(e) => setEditData({ ...editData, policeStation: e.target.value })}
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                />
+                            </div>
+
+                            {/* Court */}
+                            <div className="flex flex-col gap-1.5">
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Court</label>
+                                <input
+                                    type="text"
+                                    value={editData.court || ''}
+                                    onChange={(e) => setEditData({ ...editData, court: e.target.value })}
+                                    style={{ padding: '10px 12px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', outline: 'none' }}
+                                    className="focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                                />
+                            </div>
+
+                            {/* Registered Date - Locked */}
+                            <div className="flex flex-col gap-1.5 relative">
+                                <label style={{ fontSize: '13px', fontWeight: '600', color: '#4b5563' }}>Registered Date</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={editData.registeredDate || ''}
+                                        readOnly
+                                        style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #e5e7eb', backgroundColor: '#f3f4f6', color: '#6b7280', fontSize: '14px', outline: 'none', cursor: 'not-allowed' }}
+                                    />
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute right-3 top-2.5 w-4 h-4 text-gray-400">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                        <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                            <button onClick={() => setEditModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
-                            <button onClick={handleEditSave} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Save</button>
+
+                        {/* Footer Buttons */}
+                        <div style={{ padding: '16px 24px', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end', gap: '12px', backgroundColor: '#fafafa' }}>
+                            <button
+                                onClick={handleEditSave}
+                                style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 24px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
+                                className="hover:opacity-90 transition-opacity"
+                            >
+                                Update
+                            </button>
+                            <button
+                                onClick={() => setEditModal(false)}
+                                style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 24px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
+                                className="hover:opacity-90 transition-opacity"
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>

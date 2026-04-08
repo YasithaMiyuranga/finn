@@ -82,6 +82,11 @@ public class Police_OfficersService {
             police_officers.setRegisteredDate(police_officersDTO.getRegisteredDate());
         }
 
+        // Update associated User's email
+        if (police_officers.getUser() != null && police_officersDTO.getUserEmail() != null) {
+            police_officers.getUser().setEmail(police_officersDTO.getUserEmail());
+        }
+
         Police_Officers savedPoliceOfficer = policeOfficersRepo.save(police_officers);
 
         return new Respons<>(true,"update Police_Officers ",savedPoliceOfficer .getId());
