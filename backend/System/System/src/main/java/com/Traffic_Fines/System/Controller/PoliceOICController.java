@@ -30,4 +30,9 @@ public class PoliceOICController {
     public Respons<Integer> deletePoliceOIC(@PathVariable int id) {
         return policeOICService.deletePoliceOIC(id);
     }
+
+    @PutMapping("/updatePoliceOIC/{id}")
+    public Respons<Integer> updatePoliceOIC(@PathVariable int id, @RequestBody PoliceOICDTO policeOICDTO) {
+        return policeOICService.updatePoliceOIC(id, policeOICDTO);
+    }
 }

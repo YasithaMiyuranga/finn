@@ -24,6 +24,7 @@ import ViewAllTrafficOfficers from '../features/Admin/ViewAllTrafficOfficers';
 import ViolationDetails from '../features/Admin/ViolationDetails'; // Existing Admin ViolationDetails
 import PaidFineTickets from '../features/Admin/PaidFineTickets';
 import PendingFineTickets from '../features/Admin/PendingFineTickets';
+import ViewAllPoliceOic from '../features/Admin/ViewAllPoliceOic';
 import PoliceOfficerDashboard from '../features/PoliceOfficer/PoliceOfficerDashboard';
 import AddNewFine from '../features/PoliceOfficer/AddNewFine';
 import ViewReportedFine from '../features/PoliceOfficer/ViewReportedFine';
@@ -53,6 +54,7 @@ const DashboardRouter = () => {
             <Route path="/admin/violation-details" element={<ViolationDetails />} />
             <Route path="/admin/paid-fine-tickets" element={<PaidFineTickets />} />
             <Route path="/admin/pending-fine-tickets" element={<PendingFineTickets />} />
+            <Route path="/admin/view-all-police-oic" element={<ViewAllPoliceOic />} />
 
             {/* Police OIC Routes */}
             <Route path="/police-oic" element={<PoliceOICDashboard />} />

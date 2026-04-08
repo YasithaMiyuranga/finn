@@ -90,6 +90,7 @@ export default function AdminDashboard() {
         if (id === 'paid-fine-tickets') navigate('/dashboard/admin/paid-fine-tickets');
         if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
+        if (id === 'view-all-oic') navigate('/dashboard/admin/view-all-police-oic');
     };
 
     const navItems = [
@@ -126,6 +127,7 @@ export default function AdminDashboard() {
             )
         },
         { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
+        { id: 'view-all-oic', label: 'View All Police Oic', icon: <ShieldCheck size={22} /> },
         { 
             id: 'violation-details', 
             label: 'Violation Details', 

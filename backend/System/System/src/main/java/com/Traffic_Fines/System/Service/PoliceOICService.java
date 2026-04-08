@@ -76,4 +76,37 @@ public class PoliceOICService {
         }
         return new Respons<Integer>(false, "OIC not found", null);
     }
+
+    public Respons<Integer> updatePoliceOIC(int id, PoliceOICDTO policeOICDTO) {
+        try {
+            PoliceOIC oic = policeOICRepo.findById(id).orElse(null);
+            if (oic == null) {
+                return new Respons<Integer>(false, "OIC not found", null);
+            }
+
+            // Update OIC fields
+            oic.setFullName(policeOICDTO.getFullName());
+            oic.setPhone(policeOICDTO.getPhone());
+            oic.setOfficerRank(policeOICDTO.getOfficerRank());
+            oic.setProvince(policeOICDTO.getProvince());
+            oic.setDistrict(policeOICDTO.getDistrict());
+            oic.setCity(policeOICDTO.getCity());
+
+            // Update associated User table (Email)
+            if (oic.getUser() != null) {
+                User user = oic.getUser();
+                user.setEmail(policeOICDTO.getEmail());
+                // If password is provided in DTO, update it as well
+                if (policeOICDTO.getPassword() != null && !policeOICDTO.getPassword().isEmpty()) {
+                    user.setPassword(passwordEncoder.encode(policeOICDTO.getPassword()));
+                }
+                userRepo.save(user);
+            }
+
+            policeOICRepo.save(oic);
+            return new Respons<Integer>(true, "Police OIC Updated Successfully", oic.getId());
+        } catch (Exception e) {
+            return new Respons<Integer>(false, "Error: " + e.getMessage(), null);
+        }
+    }
 }
