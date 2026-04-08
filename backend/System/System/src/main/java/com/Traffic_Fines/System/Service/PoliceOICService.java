@@ -26,12 +26,16 @@ public class PoliceOICService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
     public Respons<Integer> savePoliceOIC(PoliceOICDTO policeOICDTO) {
         try {
             // 1. Create User first
             User user = new User();
             user.setEmail(policeOICDTO.getEmail());
-            user.setPassword(policeOICDTO.getPassword()); // In production, hash this!
+            // Hash the password for security
+            user.setPassword(passwordEncoder.encode(policeOICDTO.getPassword())); 
             user.setUserType(User.UserType.POLICEOIC); // Set user type using Enum
             User savedUser = userRepo.save(user);
 
