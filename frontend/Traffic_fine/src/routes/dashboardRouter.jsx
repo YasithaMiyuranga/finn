@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom';
 
 // Import new feature components
 import AIChat from '../features/AIChat/AIChat';
-import PointsDashboard from '../features/DriverPoints/PointsDashboard';
 import GrievanceForm from '../features/Grievance/GrievanceForm';
 import ReportsDashboard from '../features/Reports/ReportsDashboard';
 import FinePaymentPage from '../features/Payment/FinePaymentPage';
@@ -68,7 +67,6 @@ const DashboardRouter = () => {
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />
-            <Route path="/points" element={<PointsDashboard />} />
             <Route path="/grievance" element={<GrievanceForm />} />
             <Route path="/reports" element={<ReportsDashboard />} />
             <Route path="/my-fines" element={<FinePaymentPage />} />
