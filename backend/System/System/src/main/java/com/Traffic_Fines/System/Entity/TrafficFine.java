@@ -51,7 +51,7 @@ public class TrafficFine {
     @Column(name = "court_date")
     private LocalDate courtDate;
 
-    @Column(name = "provisions", length = 100)
+    @Column(name = "provisions", length = 1000)
     private String provisions;
 
     @Column(name = "total_amount")

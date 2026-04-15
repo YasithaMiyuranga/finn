@@ -148,6 +148,7 @@ export default function ViolationDetails() {
         try {
             const token = localStorage.getItem('token');
             const payload = {
+                id: parseInt(formData.fineId) || 0,
                 slLawReference: formData.sectionOfAct,
                 violationDescription: formData.violationDescription,
                 amount: parseInt(formData.amount) || 0,

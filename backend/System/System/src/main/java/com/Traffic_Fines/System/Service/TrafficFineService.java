@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -41,8 +42,12 @@ public class TrafficFineService {
         Police_Officers officer = policeOfficerRepo.findById(dto.getOfficerId());
         if (officer == null) return new Respons<>(false, "invalid officer id", null);
 
-        ViolationType violation = violationTypeRepo.findById(dto.getViolationId());
-        if (violation == null) return new Respons<>(false, "invalid violation id", null);
+        // Validate all violation IDs
+        for (Integer vId : dto.getViolationIds()) {
+            if (vId == null) continue; // Skip if null to avoid exception
+            ViolationType v = violationTypeRepo.findById(vId).orElse(null);
+            if (v == null) return new Respons<>(false, "invalid violation id: " + vId, null);
+        }
 
         // Map DTO to Entity (Matching PHP Structure)
         TrafficFine fine = new TrafficFine();
