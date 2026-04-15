@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-    Menu, ChevronDown, LogOut, LayoutDashboard, 
+import {
+    Menu, ChevronDown, LogOut, LayoutDashboard,
     Hourglass, Coins, FileText, User
 } from 'lucide-react';
 
@@ -89,7 +89,7 @@ export default function PaymentProcess() {
                         <span className="text-white text-xl font-bold">eTRAFFIC</span>
                     </div>
                 </div>
-                
+
                 <div className="relative">
                     <div onClick={() => setIsSettingsOpen(!isSettingsOpen)} className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-lg transition-all">
                         <span className="text-xs font-bold uppercase tracking-widest">Settings</span>
@@ -115,7 +115,7 @@ export default function PaymentProcess() {
                 {/* Main Content */}
                 <main className="flex-1 p-8 flex justify-center items-start pt-10 transition-all duration-300">
                     <div className="w-full max-w-2xl shadow-2xl rounded-lg overflow-hidden border border-gray-100" style={{ backgroundColor: '#f9f9f9' }}>
-                        
+
                         {/* Gray Header Section */}
                         <div className="py-6 border-b border-gray-200" style={{ backgroundColor: '#eeeeee' }}>
                             <h2 className="text-2xl font-bold text-center text-[#333] uppercase tracking-wide" style={{ fontFamily: 'sans-serif' }}>
@@ -162,14 +162,14 @@ export default function PaymentProcess() {
 
                             {/* Actions - Positioned bottom right */}
                             <div className="flex justify-end gap-3">
-                                <button 
+                                <button
                                     onClick={() => navigate(-1)}
                                     className="px-6 py-2 text-white rounded-[4px] font-medium transition-all shadow-sm"
                                     style={{ backgroundColor: '#95a5a6' }}
                                 >
                                     Cancel
                                 </button>
-                                <button 
+                                <button
                                     className="px-6 py-2 text-white rounded-[4px] font-medium transition-all shadow-sm"
                                     style={{ backgroundColor: '#007bff' }}
                                 >

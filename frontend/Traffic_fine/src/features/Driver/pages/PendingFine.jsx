@@ -244,7 +244,7 @@ export default function PendingFine() {
                                                                 <Info size={16} />
                                                             </button>
                                                             <button 
-                                                                onClick={() => navigate(`/dashboard/driver/payment-process/${fine.refNo}`)}
+                                                                onClick={() => navigate(`/dashboard/driver/pay-fine/${fine.refNo}`)}
                                                                 className="hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
                                                                 style={{ backgroundColor: '#ffc107' }}
                                                             >

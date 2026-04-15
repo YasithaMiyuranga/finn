@@ -11,7 +11,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -104,5 +106,25 @@ public class TrafficFineService {
 
     public List<TrafficFine> getAllTrafficFines() {
         return trafficFineRepo.findAll();
+    }
+
+    public Optional<TrafficFine> getTrafficFineById(int id) {
+        return Optional.ofNullable(trafficFineRepo.findById(id));
+    }
+
+    public Respons<Integer> payFine(int refNo) {
+        TrafficFine fine = trafficFineRepo.findById(refNo);
+        if (fine == null) return new Respons<>(false, "Fine not found", null);
+
+        // 1. Update status to PAID
+        fine.setStatus("PAID");
+        fine.setPaidDate(LocalDate.now());
+        trafficFineRepo.save(fine);
+
+        // 2. Remove from PendingFine
+        Optional<com.Traffic_Fines.System.Entity.PendingFine> pending = pendingFineRepo.findByFine(fine);
+        pending.ifPresent(p -> pendingFineRepo.delete(p));
+
+        return new Respons<>(true, "Fine paid successfully", refNo);
     }
 }
