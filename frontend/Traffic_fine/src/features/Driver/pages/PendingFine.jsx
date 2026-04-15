@@ -94,6 +94,14 @@ export default function PendingFine() {
         String(f.vehicleNo || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const [selectedFine, setSelectedFine] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+
+    const handleViewDetails = (fine) => {
+        setSelectedFine(fine);
+        setShowModal(true);
+    };
+
     return (
         <div className="min-h-screen bg-[#f4f6f9] flex flex-col">
             {/* Top Navigation */}
@@ -228,14 +236,19 @@ export default function PendingFine() {
                                                 <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
                                                     <td className="py-3 px-3">
                                                         <div className="flex items-center gap-1.5">
-                                                            <button className="bg-[#17a2b8] hover:bg-[#138496] text-white p-1.5 rounded transition-colors" title="View">
+                                                            <button 
+                                                                onClick={() => handleViewDetails(fine)}
+                                                                className="bg-[#17a2b8] hover:bg-[#138496] text-white p-1.5 rounded transition-colors" 
+                                                                title="View"
+                                                            >
                                                                 <Info size={16} />
                                                             </button>
                                                             <button 
-                                                                onClick={() => navigate(`/dashboard/driver/payment/${fine.refNo}`)}
-                                                                className="bg-[#ffc107] hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
+                                                                onClick={() => navigate(`/dashboard/driver/payment-process/${fine.refNo}`)}
+                                                                className="hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
+                                                                style={{ backgroundColor: '#ffc107' }}
                                                             >
-                                                                Pay Now <CreditCard size={14} />
+                                                                Pay Now <Coins size={14} />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -287,6 +300,55 @@ export default function PendingFine() {
                     </div>
                 </main>
             </div>
+
+            {/* Fine Details Modal */}
+            {showModal && selectedFine && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50">
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg overflow-hidden">
+                        <div className="bg-[#17a2b8] text-white px-5 py-4 flex justify-between items-center">
+                            <h3 className="text-lg font-bold flex items-center gap-2">
+                                <Info size={20} /> Pending Fine Details
+                            </h3>
+                            <button onClick={() => setShowModal(false)} className="text-white hover:text-gray-200 text-2xl font-light">&times;</button>
+                        </div>
+                        <div className="p-0">
+                            <table className="w-full text-sm border-collapse">
+                                <tbody>
+                                    {[
+                                        { label: 'Reference No', value: selectedFine.refNo },
+                                        { label: 'Police ID', value: selectedFine.policeId },
+                                        { label: 'License ID', value: selectedFine.licenseId },
+                                        { label: 'Vehicle No', value: selectedFine.vehicleNo },
+                                        { label: 'Class of Vehicle', value: selectedFine.classOfVehicle },
+                                        { label: 'Place', value: selectedFine.place },
+                                        { label: 'Issued Date', value: selectedFine.issuedDate },
+                                        { label: 'Issued Time', value: selectedFine.issuedTime },
+                                        { label: 'Expire Date', value: selectedFine.expireDate },
+                                        { label: 'Court', value: selectedFine.court },
+                                        { label: 'Court Date', value: selectedFine.courtDate },
+                                        { label: 'Provisions', value: selectedFine.provisions },
+                                        { label: 'Total Amount', value: `${(parseFloat(selectedFine.totalAmount) || 0).toFixed(2)}` },
+                                        { label: 'Status', value: selectedFine.status || 'pending' },
+                                    ].map((row, i) => (
+                                        <tr key={i} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors">
+                                            <td className="py-3.5 px-6 font-semibold text-gray-700 w-1/3">{row.label}</td>
+                                            <td className="py-3.5 px-6 text-gray-800">{row.value || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="p-4 bg-gray-50 flex justify-end">
+                            <button 
+                                onClick={() => setShowModal(false)}
+                                className="px-5 py-2 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded shadow-md text-sm"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

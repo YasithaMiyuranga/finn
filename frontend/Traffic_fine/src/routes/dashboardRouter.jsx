@@ -13,6 +13,7 @@ import CompleteProfile from '../features/Driver/CompleteProfile';
 import PendingFine from '../features/Driver/pages/PendingFine';
 import PaidFine from '../features/Driver/pages/PaidFine';
 import DriverViolationDetails from '../features/Driver/pages/ViolationDetails'; // Renamed to avoid collision with Admin's ViolationDetails
+import PaymentProcess from '../features/Driver/pages/PaymentProcess';
 import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
 // import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
@@ -41,6 +42,7 @@ const DashboardRouter = () => {
             <Route path="/driver" element={<DriverDashboard />} />
             <Route path="/driver/complete-profile" element={<CompleteProfile />} />
             <Route path="/driver/pending-fine" element={<PendingFine />} />
+            <Route path="/driver/payment-process/:refNo" element={<PaymentProcess />} />
             <Route path="/driver/paid-fine" element={<PaidFine />} />
             <Route path="/driver/violation-details" element={<DriverViolationDetails />} />
             <Route path="/user" element={<GeneralUserDashboard />} />
