@@ -25,6 +25,7 @@ export default function DriverDashboard() {
     const [fineTrendData, setFineTrendData] = useState([]);
     const [countPieData, setCountPieData] = useState([]);
     const [amountPieData, setAmountPieData] = useState([]);
+    const [points, setPoints] = useState(0);
     
     // Adjusted sidebar width to match the PHP version perfectly
     const sidebarWidth = sidebarOpen ? '250px' : '70px';
@@ -41,7 +42,6 @@ export default function DriverDashboard() {
         if (id === 'pending-fine') navigate('/dashboard/driver/pending-fine');
         if (id === 'paid-fine') navigate('/dashboard/driver/paid-fine');
         if (id === 'violation-details') navigate('/dashboard/driver/violation-details');
-        // Add more routing later based on user requests
     };
 
     const handleLogout = () => {
@@ -63,15 +63,24 @@ export default function DriverDashboard() {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (!driverRes.ok) return;
+                if (!driverRes.ok) throw new Error("Failed to fetch driver profile");
                 const driverResult = await driverRes.json();
-                if (!driverResult.success) return;
+                if (!driverResult.success) throw new Error("Driver profile not found");
                 
                 const driverInfo = driverResult.data;
                 setDriverData(driverInfo);
-                const licenseNo = driverInfo.licenseNumber;
+                const licenseNo = String(driverInfo.licenseNumber || "").trim();
 
-                // 2. Fetch All Traffic Fines
+                // 2. Fetch Driver Points (Last 7 Days)
+                const pointsRes = await fetch(`http://localhost:8080/api/traffic_fine/driver-points/${licenseNo}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (pointsRes.ok) {
+                    const pointsResult = await pointsRes.json();
+                    setPoints(pointsResult.data || 0);
+                }
+
+                // 3. Fetch All Traffic Fines
                 const finesRes = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -80,8 +89,11 @@ export default function DriverDashboard() {
                     const finesResult = await finesRes.json();
                     const allFines = Array.isArray(finesResult.data) ? finesResult.data : (Array.isArray(finesResult) ? finesResult : []);
                     
-                    // Filter for this driver
-                    const myFines = allFines.filter(f => String(f.licenseId) === String(licenseNo));
+                    // Filter for this driver (Exhaustive field check)
+                    const myFines = allFines.filter(f => {
+                        const fLicense = String(f.licenseId || f.license_id || f.licenseNo || f.license_no || "").trim();
+                        return fLicense === licenseNo;
+                    });
                     
                     // Calculate Stats
                     let pendingCount = 0;
@@ -93,8 +105,11 @@ export default function DriverDashboard() {
                     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
                     myFines.forEach(f => {
-                        const amt = parseFloat(f.totalAmount || f.fineAmount) || 0;
-                        if (f.status?.toLowerCase() === 'paid') {
+                        // Support various amount field names
+                        const amt = parseFloat(f.totalAmount || f.total_amount || f.fineAmount || f.amount || 0);
+                        const status = String(f.status || "").toLowerCase();
+                        
+                        if (status === 'paid') {
                             paidCount++;
                             paidAmt += amt;
                         } else {
@@ -102,10 +117,20 @@ export default function DriverDashboard() {
                             pendingAmt += amt;
                         }
                         
-                        // Monthly trend
-                        if (f.issuedDate) {
-                            const m = new Date(f.issuedDate).getMonth();
-                            if (m >= 0 && m < 12) monthlyStats[m]++;
+                        // Robust Date Parsing for Trend
+                        let dateObj = null;
+                        const d = f.issuedDate || f.issued_date;
+                        if (Array.isArray(d) && d.length >= 3) {
+                            dateObj = new Date(d[0], d[1] - 1, d[2]);
+                        } else if (d) {
+                            dateObj = new Date(d);
+                        }
+
+                        if (dateObj && !isNaN(dateObj.getTime())) {
+                            const monthIndex = dateObj.getMonth();
+                            if (monthIndex >= 0 && monthIndex < 12) {
+                                monthlyStats[monthIndex]++;
+                            }
                         }
                     });
 
@@ -127,6 +152,9 @@ export default function DriverDashboard() {
                         { name: 'Paid Fine Amount (LKR)', value: paidAmt, color: '#4d2c80' },
                         { name: 'Pending Fine Amount (LKR)', value: pendingAmt, color: '#e67e22' },
                     ]);
+                } else {
+                    const errBody = await finesRes.text();
+                    console.error(`Fines API failed with ${finesRes.status}:`, errBody);
                 }
             } catch (error) {
                 console.error("Dashboard calculation error:", error);
@@ -242,7 +270,11 @@ export default function DriverDashboard() {
                                 </p>
                             </div>
                         </div>
-                        <div className="hidden md:block">
+                        <div className="hidden md:flex items-center gap-3">
+                            <div className={`px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-2 ${points >= 50 ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                                <CreditCard size={14} />
+                                Violation Points: <span className={points >= 50 ? 'text-red-600 font-black' : ''}>{points}/50</span>
+                            </div>
                             <div className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                 Profile Verified

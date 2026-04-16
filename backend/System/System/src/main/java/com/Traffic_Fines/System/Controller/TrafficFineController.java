@@ -35,7 +35,8 @@ public class TrafficFineController {
         try {
             return ResponseEntity.ok(new Respons<>(true, "all Traffic Fine", trafficFineService.getAllTrafficFines()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "oic mokuth n", e.getMessage()));
+            e.printStackTrace(); // This will help identify the error in server logs
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error fetching fines: " + e.getMessage(), e.toString()));
         }
     }
 
@@ -120,6 +121,12 @@ public class TrafficFineController {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping("/driver-points/{licenseId}")
+    public ResponseEntity<Respons<Integer>> getDriverPoints(@PathVariable String licenseId) {
+        int points = trafficFineService.getDriverPointsInLast7Days(licenseId);
+        return ResponseEntity.ok(new Respons<>(true, "Driver points fetched successfully", points));
     }
 }
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
     Menu, Settings, Megaphone, Hourglass, ListOrdered, 
     Coins, LayoutDashboard, FileText, CreditCard, 
-    Bell, User, ChevronDown, LogOut, Info, Car
+    Bell, User, ChevronDown, LogOut, Info, Car, AlertCircle
 } from 'lucide-react';
 
 export default function PendingFine() {
@@ -39,6 +39,7 @@ export default function PendingFine() {
     const [pendingFines, setPendingFines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+    const [points, setPoints] = useState(0);
 
     useEffect(() => {
         const fetchDriverFines = async () => {
@@ -62,7 +63,16 @@ export default function PendingFine() {
                     return;
                 }
 
-                // 2. Fetch all traffic fines
+                // 2. Fetch Driver Points (Last 7 Days)
+                const pointsRes = await fetch(`http://localhost:8080/api/traffic_fine/driver-points/${myLicenseNo}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (pointsRes.ok) {
+                    const pointsResult = await pointsRes.json();
+                    setPoints(pointsResult.data || 0);
+                }
+
+                // 3. Fetch all traffic fines
                 const res = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -184,6 +194,22 @@ export default function PendingFine() {
                     <div className="container-fluid mx-auto max-w-7xl">
                         <h1 className="text-3xl font-normal text-gray-800 mb-2 mt-4">Driver's Pending Fine</h1>
                         
+                        {/* Points Warning */}
+                        {points >= 50 && (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 shadow-sm rounded-r-md">
+                                <div className="flex items-center">
+                                    <div className="flex-shrink-0">
+                                        <AlertCircle className="h-5 w-5 text-red-500" />
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-red-700 font-bold">
+                                            Account Suspended: You have reached {points}/50 violation points. Online payment is disabled. Please go to  Police station.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
                         <div className="flex items-center text-sm text-gray-500 mb-6">
                             <span 
                                 className="cursor-pointer text-blue-500 hover:underline"
@@ -244,11 +270,12 @@ export default function PendingFine() {
                                                                 <Info size={16} />
                                                             </button>
                                                             <button 
+                                                                disabled={points >= 50}
                                                                 onClick={() => navigate(`/dashboard/driver/pay-fine/${fine.refNo}`)}
-                                                                className="hover:bg-[#e0a800] text-gray-900 px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1"
-                                                                style={{ backgroundColor: '#ffc107' }}
+                                                                className={`px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1 ${points >= 50 ? 'bg-gray-200 cursor-not-allowed text-gray-400' : 'hover:bg-[#e0a800] text-gray-900'}`}
+                                                                style={points >= 50 ? {} : { backgroundColor: '#ffc107' }}
                                                             >
-                                                                Pay Now <Coins size={14} />
+                                                                {points >= 50 ? 'Suspended' : 'Pay Now'} <Coins size={14} />
                                                             </button>
                                                         </div>
                                                     </td>

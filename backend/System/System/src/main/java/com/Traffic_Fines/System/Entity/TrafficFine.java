@@ -55,12 +55,15 @@ public class TrafficFine {
     private String provisions;
 
     @Column(name = "total_amount")
-    private double totalAmount;
+    private Double totalAmount;
 
     @Column(name = "status", length = 20)
     private String status;
 
     @Column(name = "paid_date")
     private LocalDate paidDate;
+
+    @Column(name = "points")
+    private Integer points;
 
 }
