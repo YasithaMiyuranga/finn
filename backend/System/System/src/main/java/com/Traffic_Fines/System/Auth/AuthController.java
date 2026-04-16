@@ -47,6 +47,41 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Respons<?>> forgotPassword(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            authService.forgotPassword(email);
+            return ResponseEntity.ok(new Respons<>(true, "OTP sent to your email", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, e.getMessage(), null));
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Respons<?>> verifyOtp(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        String otp = request.get("otp");
+        boolean isValid = authService.verifyOtp(email, otp);
+        if (isValid) {
+            return ResponseEntity.ok(new Respons<>(true, "OTP verified successfully", null));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Invalid or expired OTP", null));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Respons<?>> resetPassword(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            String newPassword = request.get("password");
+            authService.resetPassword(email, newPassword);
+            return ResponseEntity.ok(new Respons<>(true, "Password reset successfully", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, e.getMessage(), null));
+        }
+    }
+
     @GetMapping("/logout/{userId}")
     public ResponseEntity<Respons<?>> logout(@PathVariable Integer userId) {
         return ResponseEntity.ok(new Respons<>(true,"Logout successful","user id:"+userId));
