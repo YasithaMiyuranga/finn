@@ -83,6 +83,7 @@ export default function AdminDashboard() {
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
+        if (id === 'officer-dashboard') navigate('/dashboard/admin/officer-dashboard');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
         if (id === 'add-oic') navigate('/dashboard/admin/add-oic');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
@@ -100,6 +101,16 @@ export default function AdminDashboard() {
             icon: (
                 <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
                     <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+            )
+        },
+        {
+            id: 'officer-dashboard',
+            label: 'Officer Dashboard',
+            icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                    <path d="M11 2v20c-5.07 0-9.44-3.39-10.8-8h2.1c1.23 3.48 4.54 6 8.35 6 4.97 0 9-4.03 9-9 0-4.63-3.5-8.44-8-8.94V1h2c5.52 0 10 4.48 10 10s-4.48 10-10 10V1h-2z"/>
+                    <path d="M11 11.5v-1h-2v1h-2v2h2v1h2v-1h2v-2h-2z"/>
                 </svg>
             )
         },
