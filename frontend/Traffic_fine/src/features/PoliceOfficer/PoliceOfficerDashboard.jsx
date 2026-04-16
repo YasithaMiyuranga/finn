@@ -70,23 +70,22 @@ export default function PoliceOfficerDashboard() {
                 if (!userId || !token) return;
 
                 // 1. Fetch Officer profile
-                let officerDbId = null;
+                let officerPoliceId = null;
                 const offRes = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                
                 if (offRes.ok) {
                     const offData = await offRes.json();
-                    const officers = offData.data || [];
+                    const officers = offData.data || offData || [];
                     const me = officers.find(o => 
-                        String(o.userId) === String(userId) || 
-                        String(o.user) === String(userId) || 
-                        (o.user && String(o.user.id || o.user.userId || o.user) === String(userId)) ||
-                        String(o.id) === String(userId)
+                        String(o.user?.userId || o.user?.user_id || o.user?.id || o.userId || o.user) === String(userId)
                     );
+                    
                     if (me) {
-                        officerDbId = me.policeid || me.id;
+                        officerPoliceId = String(me.policeid);
                         setOfficerInfo({
-                            officerId: me.policeid || me.id || "N/A",
+                            officerId: me.policeid || "N/A",
                             policeStation: me.policeStation || "N/A",
                             court: me.court || "N/A"
                         });
@@ -98,26 +97,36 @@ export default function PoliceOfficerDashboard() {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
-                if (res.ok && officerDbId) {
+                if (res.ok && officerPoliceId) {
                     const data = await res.json();
                     let allFines = [];
                     if (Array.isArray(data.data)) allFines = data.data;
                     else if (Array.isArray(data)) allFines = data;
 
+                    // Filter fines for THIS officer
                     let myFines = allFines.filter(f => {
-                        const fOfficerId = f.policeOfficer?.id || f.policeOfficer?.policeid || f.policeId || f.police_id || f.officerId;
-                        return String(fOfficerId) === String(officerDbId);
+                        const fPoliceId = String(f.policeId || f.police_id || f.policeid || "");
+                        return fPoliceId === officerPoliceId;
                     });
 
                     let totalAmt = 0;
                     let cData = initChartData();
 
                     myFines.forEach(f => {
-                        const amt = parseFloat(f.fineAmount) || 0;
+                        const amt = parseFloat(f.totalAmount || f.fineAmount || 0);
                         totalAmt += amt;
 
-                        if (f.issueDate) {
-                            const dateObj = new Date(f.issueDate);
+                        // Robust Date Parsing for Chart
+                        let dateObj = null;
+                        const d = f.issuedDate || f.issued_date || f.issueDate;
+                        
+                        if (Array.isArray(d) && d.length >= 3) {
+                            dateObj = new Date(d[0], d[1] - 1, d[2]);
+                        } else if (d) {
+                            dateObj = new Date(d);
+                        }
+
+                        if (dateObj && !isNaN(dateObj.getTime())) {
                             const monthIdx = dateObj.getMonth();
                             if (monthIdx >= 0 && monthIdx < 12) {
                                 cData[monthIdx].c += 1;
