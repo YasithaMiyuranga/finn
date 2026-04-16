@@ -184,7 +184,7 @@ export default function ForgotPassword() {
                   </div>
                   <button 
                     disabled={isLoading}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center group"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all flex items-center justify-center group disabled:opacity-50"
                   >
                     {isLoading ? 'Processing...' : 'Send OTP'}
                     <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
@@ -212,7 +212,7 @@ export default function ForgotPassword() {
                   </div>
                   <button 
                     disabled={isLoading}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-all"
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-bold hover:shadow-lg transition-all disabled:opacity-50"
                   >
                     {isLoading ? 'Verifying...' : 'Verify OTP'}
                   </button>

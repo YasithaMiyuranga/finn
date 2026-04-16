@@ -271,9 +271,12 @@ export default function DriverDashboard() {
                             </div>
                         </div>
                         <div className="hidden md:flex items-center gap-3">
-                            <div className={`px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-2 ${points >= 50 ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
-                                <CreditCard size={14} />
-                                Violation Points: <span className={points >= 50 ? 'text-red-600 font-black' : ''}>{points}/50</span>
+                            <div className="flex flex-col items-end">
+                                <div className={`px-4 py-2 rounded-full text-xs font-bold border flex items-center gap-2 ${points >= 50 ? 'bg-red-50 text-red-700 border-red-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                                    <CreditCard size={14} />
+                                    Violation Points: <span className={points >= 50 ? 'text-red-600 font-black' : ''}>{points}/50</span>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-bold mt-1 mr-2 uppercase tracking-tighter">Policy: Within Last 7 Days</span>
                             </div>
                             <div className="px-4 py-2 bg-green-50 text-green-700 rounded-full text-xs font-bold border border-green-100 flex items-center gap-2">
                                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
