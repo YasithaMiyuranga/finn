@@ -86,11 +86,6 @@ public class Driver {
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<PendingFine> pendingFines;
 
-    // New relationships for enhanced features
-    @JsonIgnore
-    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL)
-    private DriverPoints driverPoints;
-
     @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<EmailNotification> emailNotifications;

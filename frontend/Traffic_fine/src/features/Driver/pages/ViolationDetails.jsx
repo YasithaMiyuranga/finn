@@ -55,6 +55,8 @@ export default function ViolationDetails() {
                             id: item.id || '',
                             act: item.slLawReference || '',
                             provision: item.violationDescription || '',
+                            points: item.points || 0,
+                            severity: item.severityLevel || 'LOW',
                             amount: item.amount ? parseFloat(item.amount).toFixed(2) : "0.00"
                         }));
                         setViolations(mappedData);
@@ -75,6 +77,16 @@ export default function ViolationDetails() {
         v.provision.toLowerCase().includes(searchTerm.toLowerCase()) ||
         v.id.toString().includes(searchTerm)
     );
+
+    const getSeverityColor = (severity) => {
+        switch(severity) {
+            case 'LOW': return '#28a745';
+            case 'MEDIUM': return '#ffc107';
+            case 'HIGH': return '#fd7e14';
+            case 'CRITICAL': return '#dc3545';
+            default: return '#6c757d';
+        }
+    };
 
     return (
         <div className="min-h-screen bg-[#f4f6f9] flex flex-col">
@@ -195,6 +207,8 @@ export default function ViolationDetails() {
                                                 <th className="py-2.5 px-3 border-r border-white w-24">Fine ID</th>
                                                 <th className="py-2.5 px-3 border-r border-white w-48">Section of Act</th>
                                                 <th className="py-2.5 px-3 border-r border-white">Provision</th>
+                                                <th className="py-2.5 px-3 border-r border-white">Points</th>
+                                                <th className="py-2.5 px-3 border-r border-white text-center">Severity</th>
                                                 <th className="py-2.5 px-3">Fine Amount</th>
                                             </tr>
                                         </thead>
@@ -205,16 +219,31 @@ export default function ViolationDetails() {
                                                 </tr>
                                             ) : filteredViolations.length > 0 ? (
                                                 filteredViolations.map((v, index) => (
-                                                    <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
-                                                        <td className="py-3 px-3">{v.id}</td>
-                                                        <td className="py-3 px-3">{v.act}</td>
-                                                        <td className="py-3 px-3">{v.provision}</td>
+                                                     <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
+                                                         <td className="py-3 px-3">{v.id}</td>
+                                                         <td className="py-3 px-3">{v.act}</td>
+                                                         <td className="py-3 px-3">{v.provision}</td>
+                                                         <td className="py-3 px-3 font-semibold">{v.points}</td>
+                                                         <td className="py-3 px-3 text-center">
+                                                             <span style={{ 
+                                                                 backgroundColor: getSeverityColor(v.severity), 
+                                                                 color: v.severity === 'MEDIUM' ? '#000' : '#fff', 
+                                                                 padding: '2px 10px', 
+                                                                 borderRadius: '12px', 
+                                                                 fontSize: '11px', 
+                                                                 fontWeight: 'bold',
+                                                                 display: 'inline-block',
+                                                                 minWidth: '70px'
+                                                            }}>
+                                                                {v.severity}
+                                                            </span>
+                                                        </td>
                                                         <td className="py-3 px-3">{v.amount}</td>
                                                     </tr>
                                                 ))
                                             ) : (
                                                 <tr>
-                                                    <td colSpan="4" className="py-8 text-center text-gray-500 text-sm font-medium">No violation data found.</td>
+                                                    <td colSpan="6" className="py-8 text-center text-gray-500 text-sm font-medium">No violation data found.</td>
                                                 </tr>
                                             )}
                                         </tbody>
@@ -223,6 +252,8 @@ export default function ViolationDetails() {
                                                 <th className="py-2.5 px-3 border-r border-white">Fine ID</th>
                                                 <th className="py-2.5 px-3 border-r border-white">Section of Act</th>
                                                 <th className="py-2.5 px-3 border-r border-white">Provision</th>
+                                                <th className="py-2.5 px-3 border-r border-white">Points</th>
+                                                <th className="py-2.5 px-3 border-r border-white text-center">Severity</th>
                                                 <th className="py-2.5 px-3">Fine Amount</th>
                                             </tr>
                                         </tfoot>

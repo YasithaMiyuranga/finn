@@ -2,12 +2,14 @@ package com.Traffic_Fines.System.Dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,6 +38,6 @@ public class TrafficFineDTO {
     @Min(value = 1, message = "Officer ID is required")
     private int officerId;
 
-    @Min(value = 1, message = "Violation ID is required")
-    private int violationId;
+    @NotEmpty(message = "At least one Violation ID is required")
+    private List<Integer> violationIds;
 }

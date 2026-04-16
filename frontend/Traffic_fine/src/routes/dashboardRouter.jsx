@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom';
 
 // Import new feature components
 import AIChat from '../features/AIChat/AIChat';
-import PointsDashboard from '../features/DriverPoints/PointsDashboard';
 import GrievanceForm from '../features/Grievance/GrievanceForm';
 import ReportsDashboard from '../features/Reports/ReportsDashboard';
 import FinePaymentPage from '../features/Payment/FinePaymentPage';
@@ -14,6 +13,7 @@ import CompleteProfile from '../features/Driver/CompleteProfile';
 import PendingFine from '../features/Driver/pages/PendingFine';
 import PaidFine from '../features/Driver/pages/PaidFine';
 import DriverViolationDetails from '../features/Driver/pages/ViolationDetails'; // Renamed to avoid collision with Admin's ViolationDetails
+import PayFine from '../features/Driver/pages/PayFine';
 import GeneralUserDashboard from '../features/User/GeneralUserDashboard';
 // import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AdminDashboard from '../features/Admin/AdminDashboard';
@@ -42,6 +42,7 @@ const DashboardRouter = () => {
             <Route path="/driver" element={<DriverDashboard />} />
             <Route path="/driver/complete-profile" element={<CompleteProfile />} />
             <Route path="/driver/pending-fine" element={<PendingFine />} />
+            <Route path="/driver/pay-fine/:refNo" element={<PayFine />} />
             <Route path="/driver/paid-fine" element={<PaidFine />} />
             <Route path="/driver/violation-details" element={<DriverViolationDetails />} />
             <Route path="/user" element={<GeneralUserDashboard />} />
@@ -68,7 +69,6 @@ const DashboardRouter = () => {
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />
-            <Route path="/points" element={<PointsDashboard />} />
             <Route path="/grievance" element={<GrievanceForm />} />
             <Route path="/reports" element={<ReportsDashboard />} />
             <Route path="/my-fines" element={<FinePaymentPage />} />

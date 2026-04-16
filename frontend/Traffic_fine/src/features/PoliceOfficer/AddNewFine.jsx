@@ -255,67 +255,62 @@ export default function AddNewFine() {
             return;
         }
 
-        console.log("--- Issuing Multiple Fines ---");
+        console.log("--- Issuing Consolidated Fine ---");
         const token = localStorage.getItem('token');
-        let successCount = 0;
-        let failCount = 0;
 
-        // Loop through each selected violation and send a separate request
-        for (const violation of selectedViolations) {
-            const payload = {
-                policeId: String(officerDetails.officerId),
-                licenseId: String(driverDetails.licenseId),
-                vehicleNo: String(fineInfo.vehicleNo || "N/A"),
-                classOfVehicle: String(driverDetails.vehicleClass || "Not specified"),
-                place: String(fineInfo.place || "Unknown"),
-                issuedDate: fineInfo.issuedDate,
-                issuedTime: fineInfo.issuedTime.includes(':') && fineInfo.issuedTime.split(':').length === 2 ? fineInfo.issuedTime + ":00" : fineInfo.issuedTime,
-                expireDate: fineInfo.expireDate,
-                court: String(fineInfo.court || officerDetails.court || "Kegalla"),
-                courtDate: fineInfo.courtDate,
-                provisions: String(violation.id || violation.violation_id || ""), // Send individual ID as string
-                totalAmount: parseFloat(violation.amount) || 0, // Send individual amount
-                status: "pending",
+        // Consolidate violation details - defensive ID extraction
+        const vIds = selectedViolations
+            .map(v => parseInt(v.id || v.violation_id || v.fineId || v.violationId))
+            .filter(id => !isNaN(id) && id !== null);
 
-                // IDs for relations in backend
-                driverId: parseInt(driverDetails.driverId),
-                officerId: parseInt(officerDetails.officerDbId),
-                violationId: parseInt(violation.id)
-            };
+        const vDescriptions = selectedViolations.map(v => v.violationDescription).join(", ");
+        
+        const payload = {
+            policeId: String(officerDetails.officerId),
+            licenseId: String(driverDetails.licenseId),
+            vehicleNo: String(fineInfo.vehicleNo || "N/A"),
+            classOfVehicle: String(driverDetails.vehicleClass || "Not specified"),
+            place: String(fineInfo.place || "Unknown"),
+            issuedDate: fineInfo.issuedDate,
+            issuedTime: fineInfo.issuedTime.includes(':') && fineInfo.issuedTime.split(':').length === 2 ? fineInfo.issuedTime + ":00" : fineInfo.issuedTime,
+            expireDate: fineInfo.expireDate,
+            court: String(fineInfo.court || officerDetails.court || "Kegalla"),
+            courtDate: fineInfo.courtDate,
+            provisions: vDescriptions, // Send consolidated descriptions
+            totalAmount: totalFineAmount,
+            status: "pending",
 
-            console.log(`Submitting fine for: ${violation.violationDescription}`, payload);
+            // IDs for relations in backend
+            driverId: parseInt(driverDetails.driverId),
+            officerId: parseInt(officerDetails.officerDbId),
+            violationIds: vIds // Send list of IDs
+        };
 
-            try {
-                const res = await fetch('http://localhost:8080/api/traffic_fine/saveTrafficFine', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
+        console.log("Submitting consolidated fine payload:", payload);
 
-                const result = await res.json().catch(() => ({}));
-                if (res.ok && result.success !== false) {
-                    successCount++;
-                } else {
-                    console.error(`Failed to issue fine for ${violation.violationDescription}:`, result);
-                    failCount++;
-                }
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                failCount++;
+        try {
+            const res = await fetch('http://localhost:8080/api/traffic_fine/saveTrafficFine', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await res.json().catch(() => ({}));
+            if (res.ok && result.success !== false) {
+                alert(`Successfully issued fine with ${selectedViolations.length} violations!`);
+                navigate('/dashboard/policeofficer/view-reported-fine');
+            } else {
+                console.error("Failed to issue fine:", result);
+                const errorMsg = result.message || "Unknown error";
+                const errorDetails = result.data ? JSON.stringify(result.data) : "";
+                alert(`Failed to issue fine. ${errorMsg} ${errorDetails}`);
             }
-        }
-
-        if (failCount === 0) {
-            alert(`Successfully issued ${successCount} fine(s)!`);
-            navigate('/dashboard/policeofficer/view-reported-fine');
-        } else if (successCount > 0) {
-            alert(`Issued ${successCount} fine(s) successfully, but ${failCount} failed. Please check the reported fines.`);
-            navigate('/dashboard/policeofficer/view-reported-fine');
-        } else {
-            alert("Failed to issue fines. Please check your input validation.");
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            alert("Network error occurred while issuing fine.");
         }
     };
 

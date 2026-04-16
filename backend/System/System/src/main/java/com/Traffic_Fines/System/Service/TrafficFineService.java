@@ -11,7 +11,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -41,8 +44,14 @@ public class TrafficFineService {
         Police_Officers officer = policeOfficerRepo.findById(dto.getOfficerId());
         if (officer == null) return new Respons<>(false, "invalid officer id", null);
 
-        ViolationType violation = violationTypeRepo.findById(dto.getViolationId());
-        if (violation == null) return new Respons<>(false, "invalid violation id", null);
+        // Validate all violation IDs and sum points
+        int totalPoints = 0;
+        for (Integer vId : dto.getViolationIds()) {
+            if (vId == null) continue; // Skip if null to avoid exception
+            ViolationType v = violationTypeRepo.findById(vId).orElse(null);
+            if (v == null) return new Respons<>(false, "invalid violation id: " + vId, null);
+            totalPoints += v.getPoints();
+        }
 
         // Map DTO to Entity (Matching PHP Structure)
         TrafficFine fine = new TrafficFine();
@@ -59,6 +68,7 @@ public class TrafficFineService {
         fine.setCourtDate(dto.getCourtDate());
         fine.setProvisions(dto.getProvisions());
         fine.setTotalAmount(dto.getTotalAmount());
+        fine.setPoints(totalPoints); // Set total points
         fine.setStatus(dto.getStatus() != null ? dto.getStatus() : "pending");
 
         // Save Fine
@@ -72,6 +82,12 @@ public class TrafficFineService {
         pendingFineRepo.save(pending);
 
         return new Respons<>(true, "Traffic Fine added successfully", savedFine.getRefNo());
+    }
+
+    public int getDriverPointsInLast7Days(String licenseId) {
+        LocalDate startDate = LocalDate.now().minusDays(7);
+        Integer points = trafficFineRepo.sumPointsByLicenseIdAndIssuedDateAfter(licenseId, startDate);
+        return points != null ? points : 0;
     }
 
     public Respons<Integer> updateTrafficFine(int id, TrafficFineDTO dto) {
@@ -99,5 +115,25 @@ public class TrafficFineService {
 
     public List<TrafficFine> getAllTrafficFines() {
         return trafficFineRepo.findAll();
+    }
+
+    public Optional<TrafficFine> getTrafficFineById(int id) {
+        return Optional.ofNullable(trafficFineRepo.findById(id));
+    }
+
+    public Respons<Integer> payFine(int refNo) {
+        TrafficFine fine = trafficFineRepo.findById(refNo);
+        if (fine == null) return new Respons<>(false, "Fine not found", null);
+
+        // 1. Update status to PAID
+        fine.setStatus("PAID");
+        fine.setPaidDate(LocalDate.now());
+        trafficFineRepo.save(fine);
+
+        // 2. Remove from PendingFine
+        Optional<com.Traffic_Fines.System.Entity.PendingFine> pending = pendingFineRepo.findByFine(fine);
+        pending.ifPresent(p -> pendingFineRepo.delete(p));
+
+        return new Respons<>(true, "Fine paid successfully", refNo);
     }
 }
