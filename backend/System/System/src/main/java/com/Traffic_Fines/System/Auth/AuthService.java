@@ -22,6 +22,50 @@ public class AuthService {
     @Autowired
     private com.Traffic_Fines.System.Repository.DriverRepo driverRepo;
 
+    @Autowired
+    private com.Traffic_Fines.System.Service.EmailService emailService;
+
+    public void forgotPassword(String email) {
+        User user = userRepo.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User with email " + email + " not found");
+        }
+
+        // Generate 6-digit OTP
+        String otp = String.format("%06d", new Random().nextInt(1000000));
+        user.setOtp(otp);
+        user.setOtpExpiry(java.time.LocalDateTime.now().plusMinutes(5));
+        userRepo.save(user);
+
+        // Send Email
+        emailService.sendOtpEmail(email, otp);
+    }
+
+    public boolean verifyOtp(String email, String otp) {
+        User user = userRepo.findByEmail(email);
+        if (user == null || user.getOtp() == null || !user.getOtp().equals(otp)) {
+            return false;
+        }
+
+        if (user.getOtpExpiry().isBefore(java.time.LocalDateTime.now())) {
+            return false; // Expired
+        }
+
+        return true;
+    }
+
+    public void resetPassword(String email, String newPassword) {
+        User user = userRepo.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setOtp(null); // Clear OTP after success
+        user.setOtpExpiry(null);
+        userRepo.save(user);
+    }
+
     public LoginResponse login(String email, String password){
         User user = userRepo.findByEmail(email);
         if(user != null){
