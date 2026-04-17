@@ -29,6 +29,9 @@ public class DriverService {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private TrafficFineService trafficFineService;
+
     public Respons saveDriver(DriverDTO driverDTO) {
         // check FK in police officer table
         Driver driver = driverRepo.findByUser(driverDTO.getUser()); // customise findByUser function
@@ -88,6 +91,7 @@ public class DriverService {
             } else {
                 map.put("email", null);
             }
+            map.put("isReactivatedByOIC", d.getIsReactivatedByOIC());
             result.add(map);
         }
         return result;
@@ -178,5 +182,37 @@ public class DriverService {
             chartData.add(entry);
         }
         return chartData;
+    }
+
+    public List<Map<String, Object>> getSuspendedDrivers() {
+        List<Driver> allDrivers = driverRepo.findAll();
+        List<Map<String, Object>> suspended = new ArrayList<>();
+
+        for (Driver d : allDrivers) {
+            String licenseStr = String.valueOf(d.getLicenseNumber());
+            int points = trafficFineService.getDriverPointsInLast7Days(licenseStr);
+
+            if (points >= 50) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", d.getId());
+                map.put("firstName", d.getFirstName());
+                map.put("lastName", d.getLastName());
+                map.put("licenseNumber", d.getLicenseNumber());
+                map.put("phone", d.getPhone());
+                map.put("points", points);
+                map.put("isReactivated", d.getIsReactivatedByOIC());
+                suspended.add(map);
+            }
+        }
+        return suspended;
+    }
+
+    public Respons reactivateDriver(int licenseNo) {
+        Driver d = driverRepo.findByLicenseNumber(licenseNo);
+        if (d == null) return new Respons(false, "Driver not found", null);
+
+        d.setIsReactivatedByOIC(true);
+        driverRepo.save(d);
+        return new Respons(true, "Driver account reactivated successfully", licenseNo);
     }
 }

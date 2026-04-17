@@ -65,4 +65,6 @@ public class DriverDTO {
     @Min(value = 1, message = "User is required")
     private int user;
 
+    private Boolean isReactivatedByOIC;
+
 }

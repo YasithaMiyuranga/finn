@@ -98,6 +98,24 @@ public class DriverController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error fetching chart", e.getMessage()));
         }
     }
+
+    @GetMapping("/suspended")
+    public ResponseEntity<Respons<?>> getSuspendedDrivers() {
+        try {
+            return ResponseEntity.ok(new Respons<>(true, "suspended drivers", driverService.getSuspendedDrivers()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error fetching suspended", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/reactivate/{licenseNumber}")
+    public ResponseEntity<Respons<?>> reactivateDriver(@PathVariable int licenseNumber) {
+        try {
+            return ResponseEntity.ok(driverService.reactivateDriver(licenseNumber));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, "Error reactivating", e.getMessage()));
+        }
+    }
 }
 
 
