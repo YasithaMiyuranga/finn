@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Menu, Settings, Megaphone, Hourglass, ListOrdered, 
-    Coins, LayoutDashboard, FileText, CreditCard, 
+import {
+    Menu, Settings, Megaphone, Hourglass, ListOrdered,
+    Coins, LayoutDashboard, FileText, CreditCard,
     Bell, User, ChevronDown, LogOut, Info, Car, AlertCircle
 } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function PendingFine() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    
+
     // Adjusted sidebar width to match the PHP version perfectly
     const sidebarWidth = sidebarOpen ? '250px' : '70px';
 
@@ -53,7 +53,7 @@ export default function PendingFine() {
                 const driverRes = await fetch(`http://localhost:8080/api/Driver/getDriverByUserId/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
+
                 if (!driverRes.ok) throw new Error("Failed to fetch driver profile");
                 const driverData = await driverRes.json();
                 const myLicenseNo = driverData.data?.licenseNumber;
@@ -82,13 +82,13 @@ export default function PendingFine() {
                 if (res.ok) {
                     const data = await res.json();
                     const allFines = data.data || [];
-                    
+
                     // 3. Filter: Only fines for THIS driver's license and NOT paid
-                    const filtered = allFines.filter(f => 
-                        String(f.licenseId) === String(myLicenseNo) && 
+                    const filtered = allFines.filter(f =>
+                        String(f.licenseId) === String(myLicenseNo) &&
                         (!f.paidDate || f.status === 'Pending')
                     );
-                    
+
                     setPendingFines(filtered);
                 }
             } catch (err) {
@@ -101,7 +101,7 @@ export default function PendingFine() {
         fetchDriverFines();
     }, []);
 
-    const filteredFines = pendingFines.filter(f => 
+    const filteredFines = pendingFines.filter(f =>
         String(f.refNo || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         String(f.vehicleNo || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -127,9 +127,9 @@ export default function PendingFine() {
                         <span className="text-white text-xl font-bold">eTRAFFIC</span>
                     </div>
                 </div>
-                
+
                 <div className="relative">
-                    <div 
+                    <div
                         onClick={() => setIsSettingsOpen(!isSettingsOpen)}
                         className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-3 py-2 rounded-lg transition-all"
                     >
@@ -140,7 +140,7 @@ export default function PendingFine() {
                     {/* Settings Dropdown */}
                     {isSettingsOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 animate-fadeIn z-[60]">
-                            <button 
+                            <button
                                 onClick={() => navigate('/dashboard/driver/complete-profile')}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                             >
@@ -148,7 +148,7 @@ export default function PendingFine() {
                                 <span className="font-medium">Edit Profile</span>
                             </button>
                             <div className="my-1 border-t border-gray-100"></div>
-                            <button 
+                            <button
                                 onClick={handleLogout}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
                             >
@@ -162,23 +162,23 @@ export default function PendingFine() {
 
             <div className="flex flex-1 pt-16">
                 {/* Sidebar */}
-                <aside 
+                <aside
                     className="flex flex-col items-center py-2 fixed h-full left-0 z-40 transition-all duration-300"
                     style={{ width: sidebarWidth, backgroundColor: '#0f2439', borderTop: '1px solid #1c344d', overflowX: 'hidden' }}
                 >
                     <div className="flex flex-col w-full mt-2">
                         {navItems.map(item => (
-                            <button 
-                                key={item.id} 
-                                onClick={() => handleNav(item.id)} 
+                            <button
+                                key={item.id}
+                                onClick={() => handleNav(item.id)}
                                 title={item.label}
                                 className="w-full flex items-center transition-colors cursor-pointer"
                                 style={{
                                     padding: '16px 20px',
                                     paddingLeft: sidebarOpen ? '20px' : '26px',
                                     justifyContent: 'flex-start',
-                                    gap: '15px', 
-                                    whiteSpace: 'nowrap', 
+                                    gap: '15px',
+                                    whiteSpace: 'nowrap',
                                     border: 'none',
                                     backgroundColor: item.id === 'pending-fine' ? '#17a2b8' : 'transparent',
                                     color: item.id === 'pending-fine' ? '#ffffff' : '#b2c3d4',
@@ -195,7 +195,7 @@ export default function PendingFine() {
                 <main className="flex-1 p-6 transition-all duration-300" style={{ marginLeft: sidebarWidth }}>
                     <div className="container-fluid mx-auto max-w-7xl">
                         <h1 className="text-3xl font-normal text-gray-800 mb-2 mt-4">Driver's Pending Fine</h1>
-                        
+
                         {/* Points Warning */}
                         {points >= 50 && !isReactivated && (
                             <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 shadow-sm rounded-r-md">
@@ -211,9 +211,9 @@ export default function PendingFine() {
                                 </div>
                             </div>
                         )}
-                        
+
                         <div className="flex items-center text-sm text-gray-500 mb-6">
-                            <span 
+                            <span
                                 className="cursor-pointer text-blue-500 hover:underline"
                                 onClick={() => navigate('/dashboard/driver')}
                             >
@@ -228,13 +228,13 @@ export default function PendingFine() {
                                 <ListOrdered size={18} />
                                 <span>You can sort data here</span>
                             </div>
-                            
+
                             <div className="p-4">
                                 <div className="flex justify-end mb-4">
                                     <div className="flex items-center gap-2">
                                         <label className="text-sm text-gray-600">Search:</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                             className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:border-blue-400"
@@ -242,7 +242,7 @@ export default function PendingFine() {
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="overflow-x-auto">
                                     <table className="w-full border-collapse">
                                         <thead>
@@ -264,20 +264,21 @@ export default function PendingFine() {
                                                 <tr key={index} className="border-b border-gray-200 text-sm text-gray-700 hover:bg-gray-50">
                                                     <td className="py-3 px-3">
                                                         <div className="flex items-center gap-1.5">
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleViewDetails(fine)}
-                                                                className="bg-[#17a2b8] hover:bg-[#138496] text-white p-1.5 rounded transition-colors" 
+                                                                className="text-white p-2 rounded transition-colors flex items-center justify-center"
+                                                                style={{ backgroundColor: '#17a2b8', border: 'none' }}
                                                                 title="View"
                                                             >
                                                                 <Info size={16} />
                                                             </button>
-                                                            <button 
+                                                            <button
                                                                 disabled={points >= 50 && !isReactivated}
                                                                 onClick={() => navigate(`/dashboard/driver/pay-fine/${fine.refNo}`)}
-                                                                className={`px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1 ${points >= 50 && !isReactivated ? 'bg-gray-200 cursor-not-allowed text-gray-400' : 'hover:bg-[#e0a800] text-gray-900'}`}
-                                                                style={points >= 50 && !isReactivated ? {} : { backgroundColor: '#ffc107' }}
+                                                                className={`px-3 py-2 rounded text-sm font-bold transition-colors shadow-sm flex items-center gap-2 ${points >= 50 && !isReactivated ? 'bg-gray-200 cursor-not-allowed text-gray-400' : 'hover:bg-[#e0a800] text-black'}`}
+                                                                style={points >= 50 && !isReactivated ? {} : { backgroundColor: '#ffc107', borderRadius: '4px', border: 'none' }}
                                                             >
-                                                                {points >= 50 && !isReactivated ? 'Suspended' : 'Pay Now'} <Coins size={14} />
+                                                                Pay Now <Coins size={14} />
                                                             </button>
                                                         </div>
                                                     </td>
@@ -313,7 +314,7 @@ export default function PendingFine() {
                                         </tfoot>
                                     </table>
                                 </div>
-                                
+
                                 <div className="flex justify-between items-center mt-4">
                                     <div className="text-sm text-gray-600">
                                         Showing 1 to {pendingFines.length} of {pendingFines.length} entries
@@ -368,7 +369,7 @@ export default function PendingFine() {
                             </table>
                         </div>
                         <div className="p-4 bg-gray-50 flex justify-end">
-                            <button 
+                            <button
                                 onClick={() => setShowModal(false)}
                                 className="px-5 py-2 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded shadow-md text-sm"
                             >
