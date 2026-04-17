@@ -38,6 +38,9 @@ public class SecurityConfig {
                                 "/api/Driver/**",
                                 "/api/driver/**",
                                 "/api/traffic_fine/**",
+                                "/api/PendingFine/**",
+                                "/api/police_oic/**",
+                                "/api/police_officers/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"

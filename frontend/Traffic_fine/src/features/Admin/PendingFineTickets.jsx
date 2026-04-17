@@ -13,7 +13,10 @@ export default function PendingFineTickets() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [tickets, setTickets] = useState([]);
+    const [rawData, setRawData] = useState([]); 
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedTicket, setSelectedTicket] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const fetchPendingFines = async () => {
         try {
@@ -31,7 +34,9 @@ export default function PendingFineTickets() {
 
             const resData = await response.json();
             if (resData && resData.success) {
+                setRawData(resData.data || []);
                 const pendingTickets = (resData.data || []).map(v => ({
+                    id: v.id,
                     referenceNo: v.fine?.refNo || v.id,
                     licenseId: v.fine?.licenseId || '',
                     policeId: v.fine?.policeId || '',
@@ -47,6 +52,14 @@ export default function PendingFineTickets() {
     useEffect(() => {
         fetchPendingFines();
     }, []);
+
+    const handleShowDetails = (ticketId) => {
+        const fullItem = rawData.find(v => v.id === ticketId);
+        if (fullItem && fullItem.fine) {
+            setSelectedTicket(fullItem.fine);
+            setIsModalOpen(true);
+        }
+    };
 
     const handleLogout = () => {
         localStorage.clear();
@@ -262,6 +275,72 @@ export default function PendingFineTickets() {
     return (
         <div className="min-h-screen flex bg-gray-100" style={{ fontFamily: "'Segoe UI', Roboto, sans-serif" }}>
 
+            {/* ======== DETAILS MODAL ======== */}
+            {isModalOpen && selectedTicket && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center',
+                    alignItems: 'center', zIndex: 1000, padding: '20px'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white', width: '100%', maxWidth: '600px',
+                        borderRadius: '8px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                    }}>
+                        {/* Modal Header */}
+                        <div style={{
+                            backgroundColor: '#17a2b8', color: 'white', padding: '12px 20px',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '18px' }}>
+                                <Users size={20} /> Paid Fine Tickets
+                            </div>
+                            <button onClick={() => setIsModalOpen(false)} style={{
+                                background: 'none', border: 'none', color: 'white',
+                                cursor: 'pointer', fontSize: '20px', fontWeight: 'bold'
+                            }}>&times;</button>
+                        </div>
+                        
+                        {/* Modal Body */}
+                        <div style={{ padding: '0', maxHeight: '70vh', overflowY: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <tbody>
+                                    {[
+                                        { label: 'Reference No', value: selectedTicket.refNo },
+                                        { label: 'Police ID', value: selectedTicket.policeId },
+                                        { label: 'License ID', value: selectedTicket.licenseId },
+                                        { label: 'Vehicle No', value: selectedTicket.vehicleNo },
+                                        { label: 'Class of Vehicle', value: selectedTicket.vehicleClass },
+                                        { label: 'Place', value: selectedTicket.place },
+                                        { label: 'Issued Date', value: selectedTicket.issuedDate },
+                                        { label: 'Issued Time', value: selectedTicket.issuedTime },
+                                        { label: 'Expire Date', value: selectedTicket.expireDate },
+                                        { label: 'Court', value: selectedTicket.court },
+                                        { label: 'Court Date', value: selectedTicket.courtDate },
+                                        { label: 'Provisions', value: selectedTicket.fineType },
+                                        { label: 'Total Amount', value: selectedTicket.totalAmount },
+                                        { label: 'Status', value: 'pending' },
+                                    ].map((row, i) => (
+                                        <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
+                                            <td style={{ padding: '12px 20px', fontWeight: '600', width: '40%', color: '#333' }}>{row.label}</td>
+                                            <td style={{ padding: '12px 20px', color: '#555' }}>{row.value || '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div style={{ padding: '15px 20px', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid #eee' }}>
+                            <button onClick={() => setIsModalOpen(false)} style={{
+                                backgroundColor: '#6c757d', color: 'white', border: 'none',
+                                padding: '8px 20px', borderRadius: '4px', cursor: 'pointer',
+                                fontWeight: '600'
+                            }}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* ======== SIDEBAR ======== */}
             <aside style={{
                 width: sidebarWidth, backgroundColor: '#0e2238',
@@ -416,7 +495,7 @@ export default function PendingFineTickets() {
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                                    <button style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', padding: '6px' }}><Info size={14} /></button>
+                                                    <button onClick={() => handleShowDetails(v.id)} style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', padding: '6px', cursor: 'pointer' }}><Info size={14} /></button>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '10px 16px', color: '#212529' }}>{v.referenceNo}</td>
