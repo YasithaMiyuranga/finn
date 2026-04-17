@@ -29,15 +29,14 @@ export default function PoliceOfficerDashboard() {
         { id: 'dashboard', label: 'Dashboard', icon: <Gauge size={22} /> },
         { id: 'add-new-fine', label: 'Add New Fine', icon: <PlusCircle size={22} /> },
         { id: 'drivers-past-fine', label: "Driver's Past Fine", icon: <History size={22} /> },
-        { id: 'revenue-license', label: 'Revenue License', icon: <FileText size={22} /> },
         { id: 'view-reported-fine', label: 'View Reported Fine', icon: <Flag size={22} /> },
     ];
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/policeofficer');
         if (id === 'add-new-fine') navigate('/dashboard/policeofficer/add-new-fine');
+        if (id === 'drivers-past-fine') navigate('/dashboard/policeofficer/driver-past-fines');
         if (id === 'view-reported-fine') navigate('/dashboard/policeofficer/view-reported-fine');
-        // Add more routing later
     };
 
     const handleLogout = () => {

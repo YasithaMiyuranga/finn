@@ -29,6 +29,7 @@ import AdminOfficerDashboard from '../features/Admin/PoliceOfficerDashboard';
 import PoliceOfficerDashboard from '../features/PoliceOfficer/PoliceOfficerDashboard';
 import AddNewFine from '../features/PoliceOfficer/AddNewFine';
 import ViewReportedFine from '../features/PoliceOfficer/ViewReportedFine';
+import DriverPastFine from '../features/PoliceOfficer/DriverPastFine';
 
 // Import Police OIC components
 import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
@@ -70,6 +71,7 @@ const DashboardRouter = () => {
             <Route path="/policeofficer" element={<PoliceOfficerDashboard />} />
             <Route path="/policeofficer/add-new-fine" element={<AddNewFine />} />
             <Route path="/policeofficer/view-reported-fine" element={<ViewReportedFine />} />
+            <Route path="/policeofficer/driver-past-fines" element={<DriverPastFine />} />
 
             {/* Feature Routes */}
             <Route path="/ai-chat" element={<AIChat />} />
