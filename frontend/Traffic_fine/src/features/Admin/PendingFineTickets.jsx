@@ -4,6 +4,9 @@ import {
     Menu, UserPlus, Users, ChevronDown, LogOut,
     Edit, Bell, CheckSquare, Info, Pause, ShieldCheck
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 export default function PendingFineTickets() {
     const navigate = useNavigate();
@@ -12,16 +15,37 @@ export default function PendingFineTickets() {
     const [tickets, setTickets] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const fetchPendingFines = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('http://localhost:8080/api/PendingFine/getPendingFine', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Failed to fetch pending fines:', response.status);
+                return;
+            }
+
+            const resData = await response.json();
+            if (resData && resData.success) {
+                const pendingTickets = (resData.data || []).map(v => ({
+                    referenceNo: v.fine?.refNo || v.id,
+                    licenseId: v.fine?.licenseId || '',
+                    policeId: v.fine?.policeId || '',
+                    totalAmount: v.fine?.totalAmount ? parseFloat(v.fine.totalAmount).toFixed(2) : '0.00'
+                }));
+                setTickets(pendingTickets);
+            }
+        } catch (error) {
+            console.error('Error fetching pending fines:', error);
+        }
+    };
+
     useEffect(() => {
-        // Dummy data for now, you can hook this up to the backend later
-        setTickets([
-            { referenceNo: '10020', licenseId: 'P55555', policeId: 'B4500800', totalAmount: '1000.00' },
-            { referenceNo: '10021', licenseId: 'P55555', policeId: 'B4500800', totalAmount: '2000.00' },
-            { referenceNo: '10022', licenseId: 'P55555', policeId: 'B4500800', totalAmount: '3000.00' },
-            { referenceNo: '10023', licenseId: 'P55555', policeId: 'B4502650', totalAmount: '2000.00' },
-            { referenceNo: '10024', licenseId: 'P55555', policeId: 'B4502650', totalAmount: '3000.00' },
-            { referenceNo: '10025', licenseId: 'P500000', policeId: '842000000', totalAmount: '3000.00' },
-        ]);
+        fetchPendingFines();
     }, []);
 
     const handleLogout = () => {
@@ -68,7 +92,7 @@ export default function PendingFineTickets() {
             label: 'View All Traffic Officers', 
             icon: (
                 <svg viewBox="0 0 640 512" fill="currentColor" width="22" height="22">
-                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0-10.1 3.5l30.2-52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
+                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0-10.1 3.5l30.2 52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
                 </svg>
             )
         },
@@ -106,6 +130,125 @@ export default function PendingFineTickets() {
         if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
         if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
         if (id === 'view-all-oic') navigate('/dashboard/admin/view-all-police-oic');
+    };
+
+    const handleCSV = () => {
+        const headers = ['Reference No.', 'License ID', 'Police ID', 'Total Amount'];
+        const rows = filteredTickets.map(v => [
+            v.referenceNo || '-',
+            v.licenseId || '-',
+            v.policeId || '-',
+            v.totalAmount || '0.00'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const csv = XLSX.utils.sheet_to_csv(worksheet);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "pending_fine_tickets.csv");
+        link.click();
+    };
+
+    const handleExcel = () => {
+        const headers = ['Reference No.', 'License ID', 'Police ID', 'Total Amount'];
+        const rows = filteredTickets.map(v => [
+            v.referenceNo || '-',
+            v.licenseId || '-',
+            v.policeId || '-',
+            v.totalAmount || '0.00'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "PendingFines");
+        XLSX.writeFile(workbook, "pending_fine_tickets.xlsx");
+    };
+
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <html>
+                <head>
+                    <title>Pending Fine Tickets | Motor Traffic Department</title>
+                    <style>
+                        @page { size: portrait; margin: 20mm; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                        .header h1 { margin: 0; font-size: 24px; font-weight: normal; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 13px; }
+                        th { background-color: #f8f9fa; font-weight: bold; border-bottom: 2px solid #333; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .footer { margin-top: 20px; font-size: 10px; color: #888; text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Pending Fine Tickets | Motor Traffic Department</h1>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reference No.</th>
+                                <th>License ID</th>
+                                <th>Police ID</th>
+                                <th>Total Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredTickets.map(v => `
+                                <tr>
+                                    <td>${v.referenceNo || '-'}</td>
+                                    <td>${v.licenseId || '-'}</td>
+                                    <td>${v.policeId || '-'}</td>
+                                    <td>${v.totalAmount || '0.00'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                    <script>
+                        window.onload = function() { 
+                            setTimeout(function() {
+                                window.print(); 
+                                window.close(); 
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
+    };
+
+    const handlePDF = () => {
+        const doc = new jsPDF('portrait');
+        doc.setFontSize(18);
+        doc.text('Pending Fine Tickets | Motor Traffic Department', 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
+
+        const headers = [['Reference No.', 'License ID', 'Police ID', 'Total Amount']];
+        const rows = filteredTickets.map(v => [
+            v.referenceNo || '-',
+            v.licenseId || '-',
+            v.policeId || '-',
+            v.totalAmount || '0.00'
+        ]);
+
+        autoTable(doc, {
+            startY: 35,
+            head: headers,
+            body: rows,
+            theme: 'grid',
+            headStyles: { fillColor: [14, 34, 56], textColor: [255, 255, 255] },
+            styles: { fontSize: 10 }
+        });
+
+        doc.save("pending_fine_tickets.pdf");
     };
 
     const filteredTickets = (tickets || []).filter(v =>
@@ -234,11 +377,18 @@ export default function PendingFineTickets() {
 
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                {/* Different colors for buttons based on the user screenshot */}
-                                <button style={{ background: '#0d6efd', color: 'white', border: 'none', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>CSV</button>
-                                <button style={{ background: '#28a745', color: 'white', border: 'none', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>Excel</button>
-                                <button style={{ background: '#dc3545', color: 'white', border: 'none', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>PDF</button>
-                                <button style={{ background: '#343a40', color: 'white', border: 'none', borderRadius: '0.25rem', padding: '0.375rem 0.75rem', fontSize: '0.875rem', fontWeight: '600', cursor: 'pointer' }}>Print</button>
+                                <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📄 CSV
+                                </button>
+                                <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📊 Excel
+                                </button>
+                                <button onClick={handlePDF} style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    📕 PDF
+                                </button>
+                                <button onClick={handlePrint} style={{ backgroundColor: '#495057', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                    🖨️ Print
+                                </button>
                             </div>
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -283,7 +433,7 @@ export default function PendingFineTickets() {
                             </table>
                         </div>
                         <div style={{ padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', fontSize: '14px', color: '#212529' }}>
-                            <div>Showing 1 to 6 of 6 entries</div>
+                            <div>Showing {filteredTickets.length > 0 ? 1 : 0} to {filteredTickets.length} of {filteredTickets.length} entries</div>
                             <div style={{ display: 'flex' }}>
                                 <button style={{ border: '1px solid #dee2e6', backgroundColor: '#fff', padding: '6px 12px', cursor: 'not-allowed', color: '#6c757d', borderTopLeftRadius: '0.25rem', borderBottomLeftRadius: '0.25rem' }} disabled>Previous</button>
                                 <button style={{ border: '1px solid #0d6efd', backgroundColor: '#0d6efd', padding: '6px 14px', cursor: 'pointer', color: '#fff' }}>1</button>
