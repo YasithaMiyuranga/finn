@@ -234,7 +234,8 @@ export default function PaidFine() {
                                                         <div className="flex items-center gap-1.5">
                                                             <button 
                                                                 onClick={() => handleViewDetails(fine)}
-                                                                className="bg-[#17a2b8] hover:bg-[#138496] text-white p-1.5 rounded transition-colors" 
+                                                                className="text-white p-2 rounded transition-colors flex items-center justify-center" 
+                                                                style={{ backgroundColor: '#17a2b8', border: 'none' }}
                                                                 title="View"
                                                             >
                                                                 <Info size={16} />
