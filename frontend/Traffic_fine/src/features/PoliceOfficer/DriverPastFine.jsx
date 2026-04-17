@@ -2,107 +2,60 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, ChevronDown, LogOut,
-    PlusCircle, History, FileText, Flag, Gauge, Bell, Search
+    PlusCircle, History, Flag, Gauge, Search, Loader2, AlertCircle
 } from 'lucide-react';
 
-export default function ViewReportedFine() {
+export default function DriverPastFine() {
     const navigate = useNavigate();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [fines, setFines] = useState([]);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [loading, setLoading] = useState(true);
+    
+    // Core search state
+    const [licenseNo, setLicenseNo] = useState('');
+    const [allFines, setAllFines] = useState([]);
+    const [filteredFines, setFilteredFines] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
+    const [innerSearch, setInnerSearch] = useState('');
 
-    useEffect(() => {
-        const fetchFines = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                const userId = localStorage.getItem('userId');
+    const fetchFines = async () => {
+        if (!licenseNo.trim()) return;
+        
+        setLoading(true);
+        setHasSearched(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-                // 1. Fetch Officer profile to know their DB ID
-                let officerDbId = null;
-                const offRes = await fetch('http://localhost:8080/api/police_officers/getPoliceOfficers', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (offRes.ok) {
-                    const offData = await offRes.json();
-                    const officers = offData.data || [];
-                    const me = officers.find(o => 
-                        String(o.userId) === String(userId) || 
-                        String(o.user) === String(userId) || 
-                        (o.user && String(o.user.id || o.user.userId || o.user) === String(userId)) ||
-                        String(o.id) === String(userId) ||
-                        String(o.policeid) === String(userId)
-                    );
-                    if (me) {
-                        // Use the badge number (policeid) as the primary identifier for matching fines 
-                        // as seen in the traffic_fine table screenshot (e.g. 1212311)
-                        officerDbId = me.policeid || me.id;
-                    }
-                }
-
-                // 2. Fetch traffic fines
-                const res = await fetch('http://localhost:8080/api/traffic_fine/getTrafficFine', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                console.log("Logged-in Officer DB ID:", officerDbId);
-
-                if (res.ok) {
-                    const data = await res.json();
-                    let allFines = [];
-                    if (Array.isArray(data.data)) {
-                        allFines = data.data;
-                    } else if (Array.isArray(data)) {
-                        allFines = data;
-                    }
-
-                    // Filter fines to only show those belonging to the logged-in officer
-                    const myFines = allFines.filter(f => {
-                        // Exhaustive check for officer ID in various possible locations
-                        const fOfficerObj = f.policeOfficer || f.police_officer || {};
-                        const fOfficerId = (typeof fOfficerObj === 'object') 
-                            ? (fOfficerObj.policeid || fOfficerObj.id || fOfficerObj.officerId)
-                            : fOfficerObj;
-                        
-                        // Check policeId or police_id field directly from backend response
-                        const directOfficerId = f.policeId || f.police_id || f.officerId;
-                        
-                        const finalOfficerId = fOfficerId || directOfficerId;
-
-                        console.log(`Checking fine ${f.refNo} | Found Officer ID:`, finalOfficerId, "Matching with:", officerDbId);
-                        
-                        return String(finalOfficerId) === String(officerDbId);
-                    });
-
-                    console.log("My filtered fines count:", myFines.length);
-
-                    // Map fields
-                    const mappedFines = myFines.map(f => {
-                        return {
-                            id: f.id,
-                            referenceNo: f.refNo || "N/A",
-                            drivingLicenseNo: f.licenseId || "N/A",
-                            provision: f.provisions || f.violationType?.violationName || "N/A",
-                            vehicleNo: f.vehicalNo || f.vehicleNo || "N/A",
-                            totalAmount: f.totalAmount ? parseFloat(f.totalAmount).toFixed(2) : "0.00",
-                            issueDate: f.issuedDate || "N/A"
-                        };
-                    });
-
-                    setFines(mappedFines);
-                } else {
-                    console.error("Failed to fetch fines");
-                }
-            } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
+            if (res.ok) {
+                const data = await res.json();
+                const fines = data.data || [];
+                // Filter by license number
+                const filtered = fines.filter(f => 
+                    String(f.licenseId || f.license_id || f.drivingLicenseNo).toLowerCase() === licenseNo.toLowerCase().trim()
+                );
+                setAllFines(filtered);
+                setFilteredFines(filtered);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching fines:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        fetchFines();
-    }, []);
+    const handleInnerSearch = (val) => {
+        setInnerSearch(val);
+        const searchFiltered = allFines.filter(f => 
+            String(f.refNo || f.referenceNo).toLowerCase().includes(val.toLowerCase()) ||
+            String(f.vehicleNo || f.vehicalNo).toLowerCase().includes(val.toLowerCase()) ||
+            String(f.place).toLowerCase().includes(val.toLowerCase()) ||
+            String(f.provisions || f.provision).toLowerCase().includes(val.toLowerCase())
+        );
+        setFilteredFines(searchFiltered);
+    };
 
     const handleLogout = () => {
         localStorage.clear();
@@ -124,11 +77,6 @@ export default function ViewReportedFine() {
     ];
 
     const sidebarWidth = sidebarOpen ? '250px' : '65px';
-
-    const filteredFines = fines.filter(f => 
-        String(f.referenceNo || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-        String(f.drivingLicenseNo || "").toLowerCase().includes(searchTerm.toLowerCase())
-    );
 
     return (
         <div className="min-h-screen flex bg-gray-100" style={{ fontFamily: "'Segoe UI', Roboto, sans-serif" }}>
@@ -161,17 +109,17 @@ export default function ViewReportedFine() {
                                 alignItems: 'center', 
                                 padding: '12px 20px', 
                                 cursor: 'pointer',
-                                backgroundColor: item.id === 'view-reported-fine' ? '#17a2b8' : 'transparent',
-                                borderLeft: item.id === 'view-reported-fine' ? '4px solid #fff' : '4px solid transparent',
+                                backgroundColor: item.id === 'drivers-past-fine' ? '#17a2b8' : 'transparent',
+                                borderLeft: item.id === 'drivers-past-fine' ? '4px solid #fff' : '4px solid transparent',
                                 transition: 'background-color 0.2s',
                                 overflow: 'hidden',
                                 whiteSpace: 'nowrap'
                             }}
                             onMouseEnter={(e) => {
-                                if (item.id !== 'view-reported-fine') e.currentTarget.style.backgroundColor = '#1e3352';
+                                if (item.id !== 'drivers-past-fine') e.currentTarget.style.backgroundColor = '#1e3352';
                             }}
                             onMouseLeave={(e) => {
-                                if (item.id !== 'view-reported-fine') e.currentTarget.style.backgroundColor = 'transparent';
+                                if (item.id !== 'drivers-past-fine') e.currentTarget.style.backgroundColor = 'transparent';
                             }}
                         >
                             <span style={{ minWidth: '30px' }}>{item.icon}</span>
@@ -238,17 +186,19 @@ export default function ViewReportedFine() {
                 {/* Page Content */}
                 <div style={{ padding: '30px 40px', maxWidth: '1200px', width: '100%', margin: '0 auto' }}>
                     <div style={{ marginBottom: '24px' }}>
-                        <h1 style={{ fontSize: '28px', color: '#212529', marginBottom: '8px', fontWeight: '400' }}>View Reported Fine</h1>
+                        <h1 style={{ fontSize: '28px', color: '#212529', marginBottom: '8px', fontWeight: '400' }}>Driver's Past Fine</h1>
                         <div style={{ fontSize: '14px', color: '#6c757d' }}>
-                            <span style={{ color: '#007bff' }}>Dashboard</span> / View Reported Fine
+                            <span style={{ color: '#007bff' }}>Dashboard</span> / Driver's Past Fine
                         </div>
                     </div>
 
+                    {/* Search Field Card */}
                     <div style={{ 
                         backgroundColor: '#fff', 
                         borderRadius: '4px', 
                         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                        border: '1px solid #rgba(0,0,0,.125)'
+                        border: '1px solid rgba(0,0,0,.125)',
+                        marginBottom: '30px'
                     }}>
                         <div style={{ 
                             padding: '12px 20px', 
@@ -260,18 +210,64 @@ export default function ViewReportedFine() {
                             color: '#495057',
                             fontSize: '15px'
                         }}>
-                            <Menu size={16} />
-                            You can sort data here
+                            <History size={16} />
+                            Search Driver Past Fines
                         </div>
+                        <div style={{ padding: '24px' }}>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Driving License No"
+                                    value={licenseNo}
+                                    onChange={(e) => setLicenseNo(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && fetchFines()}
+                                    style={{
+                                        padding: '8px 12px',
+                                        border: '1px solid #ced4da',
+                                        borderRadius: '4px',
+                                        width: '280px',
+                                        outline: 'none',
+                                        fontSize: '14px'
+                                    }}
+                                />
+                                <button
+                                    onClick={fetchFines}
+                                    style={{
+                                        backgroundColor: '#007bff',
+                                        color: 'white',
+                                        padding: '8px 20px',
+                                        borderRadius: '4px',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        fontWeight: '500',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px'
+                                    }}
+                                >
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                                    Check
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
+                    {/* Table Card */}
+                    <div style={{ 
+                        backgroundColor: '#fff', 
+                        borderRadius: '4px', 
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        border: '1px solid rgba(0,0,0,.125)'
+                    }}>
                         <div style={{ padding: '20px' }}>
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                     <label style={{ fontSize: '14px', color: '#495057' }}>Search:</label>
                                     <input 
                                         type="text" 
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        value={innerSearch}
+                                        onChange={(e) => handleInnerSearch(e.target.value)}
                                         style={{
                                             padding: '6px 12px',
                                             border: '1px solid #ced4da',
@@ -287,7 +283,7 @@ export default function ViewReportedFine() {
                                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
                                     <thead>
                                         <tr>
-                                            {['Reference No', 'Driving License No', 'Provision', 'Vehicle No', 'Total Amount', 'Issue Date'].map((header, i) => (
+                                            {['Reference No', 'Provision', 'Vehicle No', 'Place', 'Issue Date'].map((header, i) => (
                                                 <th key={header} style={{ 
                                                     padding: '12px', 
                                                     borderBottom: '2px solid #dee2e6',
@@ -308,43 +304,33 @@ export default function ViewReportedFine() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {loading ? (
-                                            <tr><td colSpan="6" style={{ padding: '20px', textAlign: 'center' }}>Loading fines...</td></tr>
-                                        ) : filteredFines.length === 0 ? (
-                                            <tr>
-                                                <td colSpan="6" style={{ padding: '20px', textAlign: 'center', color: '#6c757d' }}>
-                                                    No fines found.
-                                                </td>
-                                            </tr>
-                                        ) : (
+                                        {filteredFines.length > 0 ? (
                                             filteredFines.map((fine, index) => (
                                                 <tr key={index} style={{ borderBottom: '1px solid #dee2e6', backgroundColor: index % 2 === 0 ? '#fff' : '#f8f9fa' }}>
-                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.referenceNo}</td>
-                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.drivingLicenseNo}</td>
-                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.provision}</td>
-                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.vehicleNo}</td>
-                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.totalAmount}</td>
-                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.issueDate}</td>
+                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.refNo || fine.referenceNo}</td>
+                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.provisions || fine.provision}</td>
+                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.vehicleNo || fine.vehicalNo}</td>
+                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.place}</td>
+                                                    <td style={{ padding: '12px', color: '#212529', fontSize: '14px' }}>{fine.issuedDate || fine.issueDate}</td>
                                                 </tr>
                                             ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan="5" style={{ padding: '40px', textAlign: 'center', color: '#6c757d' }}>
+                                                    {!hasSearched ? (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                                                            <History size={32} style={{ opacity: 0.3 }} />
+                                                            <span>Enter a driving license number to view past fines</span>
+                                                        </div>
+                                                    ) : loading ? (
+                                                        "Searching records..."
+                                                    ) : (
+                                                        "No data available in table"
+                                                    )}
+                                                </td>
+                                            </tr>
                                         )}
                                     </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            {['Reference No', 'Driving License No', 'Provision', 'Vehicle No', 'Total Amount', 'Issue Date'].map((header, i) => (
-                                                <th key={header} style={{ 
-                                                    padding: '12px', 
-                                                    borderTop: '2px solid #dee2e6',
-                                                    color: '#212529',
-                                                    fontWeight: '700',
-                                                    fontSize: '14px',
-                                                    backgroundColor: i % 2 === 0 ? '#e9ecef' : '#fff'
-                                                }}>
-                                                    {header}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </tfoot>
                                 </table>
                             </div>
 
