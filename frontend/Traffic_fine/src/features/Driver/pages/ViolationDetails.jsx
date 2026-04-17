@@ -5,6 +5,9 @@ import {
     Coins, LayoutDashboard, FileText, CreditCard, 
     Bell, User, ChevronDown, LogOut, Info, Car
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 export default function ViolationDetails() {
     const navigate = useNavigate();
@@ -77,6 +80,135 @@ export default function ViolationDetails() {
         v.provision.toLowerCase().includes(searchTerm.toLowerCase()) ||
         v.id.toString().includes(searchTerm)
     );
+
+    const handlePrint = () => {
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <html>
+                <head>
+                    <title>Violation Details | Motor Traffic Department</title>
+                    <style>
+                        @page { size: landscape; margin: 20mm; }
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+                        .header { border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+                        .header h1 { margin: 0; font-size: 24px; font-weight: normal; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; font-size: 13px; }
+                        th { background-color: #ffffff; font-weight: bold; border-bottom: 2px solid #333; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                        .footer { margin-top: 20px; font-size: 10px; color: #888; text-align: right; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Violation Details | Motor Traffic Department</h1>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fine ID</th>
+                                <th>Section</th>
+                                <th>Violation Description</th>
+                                <th>Points</th>
+                                <th>Severity</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredViolations.map(v => `
+                                <tr>
+                                    <td>${v.id || '-'}</td>
+                                    <td>${v.act || '-'}</td>
+                                    <td>${v.provision || '-'}</td>
+                                    <td>${v.points || '0'}</td>
+                                    <td>${v.severity || 'LOW'}</td>
+                                    <td>${v.amount || '0'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="footer">Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}</div>
+                    <script>
+                        window.onload = function() { 
+                            setTimeout(function() {
+                                window.print(); 
+                                window.close(); 
+                            }, 500);
+                        }
+                    </script>
+                </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
+    };
+
+    const handleCSV = () => {
+        const headers = ['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount'];
+        const rows = filteredViolations.map(v => [
+            v.id || '-',
+            v.act || '-',
+            v.provision || '-',
+            v.points || '0',
+            v.severity || 'LOW',
+            v.amount || '0'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const csv = XLSX.utils.sheet_to_csv(worksheet);
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "violation_details.csv");
+        link.click();
+    };
+
+    const handleExcel = () => {
+        const headers = ['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount'];
+        const rows = filteredViolations.map(v => [
+            v.id || '-',
+            v.act || '-',
+            v.provision || '-',
+            v.points || '0',
+            v.severity || 'LOW',
+            v.amount || '0'
+        ]);
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Violations");
+        XLSX.writeFile(workbook, "violation_details.xlsx");
+    };
+
+    const handlePDF = () => {
+        const doc = new jsPDF('landscape');
+        doc.setFontSize(18);
+        doc.text('Violation Details | Motor Traffic Department', 14, 20);
+        doc.setFontSize(10);
+        doc.text(`Generated on ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 14, 28);
+
+        const headers = [['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount']];
+        const rows = filteredViolations.map(v => [
+            v.id || '-',
+            v.act || '-',
+            v.provision || '-',
+            v.points || '0',
+            v.severity || 'LOW',
+            v.amount || '0'
+        ]);
+
+        autoTable(doc, {
+            startY: 35,
+            head: headers,
+            body: rows,
+            theme: 'grid',
+            headStyles: { fillColor: [14, 34, 56], textColor: [255, 255, 255] },
+            styles: { fontSize: 9 }
+        });
+
+        doc.save("violation_details.pdf");
+    };
 
     const getSeverityColor = (severity) => {
         switch(severity) {
@@ -188,8 +320,22 @@ export default function ViolationDetails() {
                             </div>
                             
                             <div className="p-4">
-                                <div className="flex justify-end mb-4">
-                                    <div className="flex items-center gap-2">
+                                <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                            📄 CSV
+                                        </button>
+                                        <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                            📊 Excel
+                                        </button>
+                                        <button onClick={handlePDF} style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                            📕 PDF
+                                        </button>
+                                        <button onClick={handlePrint} style={{ backgroundColor: '#495057', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
+                                            🖨️ Print
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-2 ml-auto">
                                         <label className="text-sm text-gray-600">Search:</label>
                                         <input 
                                             type="text" 
