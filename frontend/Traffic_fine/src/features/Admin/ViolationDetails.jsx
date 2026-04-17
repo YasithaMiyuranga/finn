@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Menu, Users, ChevronDown, LogOut,
-    Bell, Pencil, Trash2, CheckSquare, Pause, ShieldCheck
+    Menu, UserPlus, Users, ChevronDown, LogOut,
+    Edit, Bell, Pencil, Trash2, CheckSquare, Pause, ShieldCheck
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -86,12 +86,27 @@ export default function ViolationDetails() {
 
     const navItems = [
         {
-            id: 'dashboard', label: 'Dashboard',
-            icon: <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            id: 'dashboard',
+            label: 'Dashboard',
+            icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                </svg>
+            )
         },
-        { 
-            id: 'add-traffic-officer', 
-            label: 'Add Traffic Officer', 
+        {
+            id: 'officer-dashboard',
+            label: 'Officer Dashboard',
+            icon: (
+                <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                    <path d="M11 2v20c-5.07 0-9.44-3.39-10.8-8h2.1c1.23 3.48 4.54 6 8.35 6 4.97 0 9-4.03 9-9 0-4.63-3.5-8.44-8-8.94V1h2c5.52 0 10 4.48 10 10s-4.48 10-10 10V1h-2z"/>
+                    <path d="M11 11.5v-1h-2v1h-2v2h2v1h2v-1h2v-2h-2z"/>
+                </svg>
+            )
+        },
+        {
+            id: 'add-traffic-officer',
+            label: 'Add Traffic Officer',
             icon: (
                 <svg viewBox="0 0 512 512" fill="currentColor" width="22" height="22">
                     <path d="M0 128C0 92.7 28.7 64 64 64H448c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM176 256a64 64 0 1 0 0-128 64 64 0 1 0 0 128zM80 352c0 35.3 28.7 64 64 64H208c35.3 0 64-28.7 64-64v-16c0-17.7-14.3-32-32-32H112c-17.7 0-32 14.3-32 32v16zM320 160c-8.8 0-16 7.2-16 16s7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H320zm0 64c-8.8 0-16 7.2-16 16s7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H320zm0 64c-8.8 0-16 7.2-16 16s7.2 16 16 16H432c8.8 0 16-7.2 16-16s-7.2-16-16-16H320z"/>
@@ -108,11 +123,11 @@ export default function ViolationDetails() {
             label: 'View All Traffic Officers', 
             icon: (
                 <svg viewBox="0 0 640 512" fill="currentColor" width="22" height="22">
-                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0 10.1 3.5l30.2 52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
+                    <path d="M416 224c0-53-43-96-96-96s-96 43-96 96 43 96 96 96 96-43 96-96zm-171.7-86.3C213.6 109 177.3 96 144 96c-53 0-96 43-96 96s43 96 96 96c21.2 0 40.5-6.9 56.4-18.5-8.2-18.7-12.4-39-12.4-60.5 0-33 11.2-63.5 30.3-87.3zM224 352c-70.7 0-128 57.3-128 128 0 17.7 14.3 32 32 32h275.6c11.7-32.5 35.8-59 66.4-71.8V384h-.3c-11.4-19-31.5-32-54.1-32h-191.6zm403.9-39.7c2.4 12.8 2.4 25.8 0 38.6l32 25c2.9 2.2 3.6 6.2 1.6 9.4l-30.2 52.3c-2 3.5-6.4 4.8-10.1 3.5l-37.6-15.1c-11.8 9.5-25 17-39.2 22.2l-5.7 40C531.3 491.5 528 494 524 494h-60.4c-4 0-7.3-2.5-7.7-6.2l-5.7-40c-14.2-5.2-27.4-12.7-39.2-22.2l-37.6 15.1c-3.7 1.3-8.1 0-10.1-3.5l-30.2-52.3c-2-3.2-1.2-7.2 1.6-9.4l32-25c-2.4-12.8-2.4-25.8 0-38.6l-32-25c-2.9-2.2-3.6-6.2-1.6-9.4l30.2-52.3c2-3.5 6.4-4.8 10.1-3.5l37.6 15.1c11.8-9.5 25-17 39.2-22.2l5.7-40c.4-3.7 3.7-6.2 7.7-6.2h60.4c4 0 7.3 2.5 7.7 6.2l5.7 40c14.2 5.2 27.4 12.7 39.2 22.2l37.6-15.1c3.7-1.3 8.1 0-10.1 3.5l30.2-52.3c2 3.2 1.2 7.2-1.6 9.4l-32 25zM493.8 450c18.5 0 33.6-15.1 33.6-33.6s-15.1-33.6-33.6-33.6-33.6 15.1-33.6 33.6 15.1 33.6 33.6 33.6z"/>
                 </svg>
             )
         },
-        { id: 'view-all-drivers', label: 'View All Drivers', icon: <Users size={22} /> },
+        { id: 'view-all', label: 'View All Drivers', icon: <Users size={22} /> },
         { id: 'view-all-oic', label: 'View All Police Oic', icon: <ShieldCheck size={22} /> },
         { 
             id: 'violation-details', 
@@ -123,20 +138,29 @@ export default function ViolationDetails() {
                 </svg>
             )
         },
-        { id: 'paid-fine-tickets', label: 'Paid Fine Tickets', icon: <CheckSquare size={22} /> },
-        { id: 'pending-fine-tickets', label: 'Pending Fine Tickets', icon: <Pause size={22} /> },
+        { 
+            id: 'paid-fine-tickets', 
+            label: 'Paid Fine Tickets', 
+            icon: <CheckSquare size={22} /> 
+        },
+        { 
+            id: 'pending-fine-tickets', 
+            label: 'Pending Fine Tickets', 
+            icon: <Pause size={22} /> 
+        },
     ];
 
     const handleNav = (id) => {
         if (id === 'dashboard') navigate('/dashboard/admin');
+        if (id === 'officer-dashboard') navigate('/dashboard/admin/officer-dashboard');
         if (id === 'add-traffic-officer') navigate('/dashboard/admin/add-traffic-officer');
         if (id === 'add-oic') navigate('/dashboard/admin/add-oic');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/admin/view-all-traffic-officers');
         if (id === 'violation-details') navigate('/dashboard/admin/violation-details');
-        if (id === 'view-all-oic') navigate('/dashboard/admin/view-all-police-oic');
-        if (id === 'view-all-drivers') navigate('/dashboard/admin/view-all-drivers');
         if (id === 'paid-fine-tickets') navigate('/dashboard/admin/paid-fine-tickets');
         if (id === 'pending-fine-tickets') navigate('/dashboard/admin/pending-fine-tickets');
+        if (id === 'view-all') navigate('/dashboard/admin/view-all-drivers');
+        if (id === 'view-all-oic') navigate('/dashboard/admin/view-all-police-oic');
     };
 
     const handleInputChange = (e) => {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Menu, Users, ChevronDown, LogOut
+    Menu, Users, ChevronDown, LogOut, ShieldAlert
 } from 'lucide-react';
 
 export default function AddTrafficOfficer() {
@@ -48,6 +48,7 @@ export default function AddTrafficOfficer() {
             )
         },
         { id: 'view-all-drivers', label: 'View All Drivers', icon: <Users size={22} /> },
+        { id: 'repeat-offenders', label: 'Repeat Offenders', icon: <ShieldAlert size={22} /> },
     ];
 
     const handleNav = (id) => {
@@ -55,6 +56,7 @@ export default function AddTrafficOfficer() {
         if (id === 'add-traffic-officer') navigate('/dashboard/police-oic/add-traffic-officer');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/police-oic/view-all-traffic-officers');
         if (id === 'view-all-drivers') navigate('/dashboard/police-oic/view-all-drivers');
+        if (id === 'repeat-offenders') navigate('/dashboard/police-oic/repeat-offenders');
     };
 
     const handleInputChange = (e) => {
