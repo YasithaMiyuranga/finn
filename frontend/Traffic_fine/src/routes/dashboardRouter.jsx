@@ -35,6 +35,7 @@ import PoliceOICDashboard from '../features/PoliceOIC/PoliceOICDashboard';
 import AddTrafficOfficerOIC from '../features/PoliceOIC/AddTrafficOfficer';
 import ViewAllTrafficOfficersOIC from '../features/PoliceOIC/ViewAllTrafficOfficers';
 import ViewAllDriversOIC from '../features/PoliceOIC/ViewAllDrivers';
+import RepeatOffenders from '../features/PoliceOIC/RepeatOffenders';
 
 const DashboardRouter = () => {
     return (
@@ -64,6 +65,7 @@ const DashboardRouter = () => {
             <Route path="/police-oic/add-traffic-officer" element={<AddTrafficOfficerOIC />} />
             <Route path="/police-oic/view-all-traffic-officers" element={<ViewAllTrafficOfficersOIC />} />
             <Route path="/police-oic/view-all-drivers" element={<ViewAllDriversOIC />} />
+            <Route path="/police-oic/repeat-offenders" element={<RepeatOffenders />} />
 
             <Route path="/policeofficer" element={<PoliceOfficerDashboard />} />
             <Route path="/policeofficer/add-new-fine" element={<AddNewFine />} />

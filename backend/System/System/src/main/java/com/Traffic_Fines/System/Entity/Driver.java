@@ -64,6 +64,9 @@ public class Driver {
     @Column(name = "registered_date")
     private LocalDate registeredDate = LocalDate.now();
 
+    @Column(name = "is_reactivated_by_oic")
+    private Boolean isReactivatedByOIC = false;
+
     public enum Province {
         Western, Central, Southern, Northern, Eastern, North_Western, North_Central, Uva, Sabaragamuwa
     }

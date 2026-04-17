@@ -29,7 +29,7 @@ public class AuthController {
             }
             return ResponseEntity.ok(new Respons<>(true,"Login successful",authService.login(loginDTO.getEmail(), loginDTO.getPassword())));
         }catch (RuntimeException e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false,"runtime error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new Respons<>(false, e.getMessage(), null));
         }
     }
 

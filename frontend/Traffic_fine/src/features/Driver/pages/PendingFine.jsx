@@ -40,6 +40,7 @@ export default function PendingFine() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [points, setPoints] = useState(0);
+    const [isReactivated, setIsReactivated] = useState(false);
 
     useEffect(() => {
         const fetchDriverFines = async () => {
@@ -56,6 +57,7 @@ export default function PendingFine() {
                 if (!driverRes.ok) throw new Error("Failed to fetch driver profile");
                 const driverData = await driverRes.json();
                 const myLicenseNo = driverData.data?.licenseNumber;
+                setIsReactivated(driverData.data?.isReactivatedByOIC || false);
 
                 if (!myLicenseNo) {
                     console.error("License number not found for this driver");
@@ -195,7 +197,7 @@ export default function PendingFine() {
                         <h1 className="text-3xl font-normal text-gray-800 mb-2 mt-4">Driver's Pending Fine</h1>
                         
                         {/* Points Warning */}
-                        {points >= 50 && (
+                        {points >= 50 && !isReactivated && (
                             <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 shadow-sm rounded-r-md">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
@@ -203,7 +205,7 @@ export default function PendingFine() {
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm text-red-700 font-bold">
-                                            Account Suspended: You have reached {points}/50 violation points. Online payment is disabled. Please go to  Police station.
+                                            Account Suspended: You have reached {points}/50 violation points. Online payment is disabled. Please go to your nearest police station and meet the Police OIC to reactivate your account.
                                         </p>
                                     </div>
                                 </div>
@@ -270,12 +272,12 @@ export default function PendingFine() {
                                                                 <Info size={16} />
                                                             </button>
                                                             <button 
-                                                                disabled={points >= 50}
+                                                                disabled={points >= 50 && !isReactivated}
                                                                 onClick={() => navigate(`/dashboard/driver/pay-fine/${fine.refNo}`)}
-                                                                className={`px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1 ${points >= 50 ? 'bg-gray-200 cursor-not-allowed text-gray-400' : 'hover:bg-[#e0a800] text-gray-900'}`}
-                                                                style={points >= 50 ? {} : { backgroundColor: '#ffc107' }}
+                                                                className={`px-2.5 py-1.5 rounded text-xs font-bold transition-colors shadow-sm flex items-center gap-1 ${points >= 50 && !isReactivated ? 'bg-gray-200 cursor-not-allowed text-gray-400' : 'hover:bg-[#e0a800] text-gray-900'}`}
+                                                                style={points >= 50 && !isReactivated ? {} : { backgroundColor: '#ffc107' }}
                                                             >
-                                                                {points >= 50 ? 'Suspended' : 'Pay Now'} <Coins size={14} />
+                                                                {points >= 50 && !isReactivated ? 'Suspended' : 'Pay Now'} <Coins size={14} />
                                                             </button>
                                                         </div>
                                                     </td>

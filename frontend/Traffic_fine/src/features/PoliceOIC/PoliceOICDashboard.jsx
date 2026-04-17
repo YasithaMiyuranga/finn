@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, Users, ChevronDown, LogOut,
-    CheckSquare, Pause
+    CheckSquare, Pause, ShieldAlert
 } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -84,6 +84,7 @@ export default function PoliceOICDashboard() {
         if (id === 'add-traffic-officer') navigate('/dashboard/police-oic/add-traffic-officer');
         if (id === 'view-all-traffic-officers') navigate('/dashboard/police-oic/view-all-traffic-officers');
         if (id === 'view-all-drivers') navigate('/dashboard/police-oic/view-all-drivers');
+        if (id === 'repeat-offenders') navigate('/dashboard/police-oic/repeat-offenders');
     };
 
     const navItems = [
@@ -115,6 +116,11 @@ export default function PoliceOICDashboard() {
             )
         },
         { id: 'view-all-drivers', label: 'View All Drivers', icon: <Users size={22} /> },
+        { 
+            id: 'repeat-offenders', 
+            label: 'Repeat Offenders', 
+            icon: <ShieldAlert size={22} /> 
+        },
     ];
 
     return (

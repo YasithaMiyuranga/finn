@@ -96,7 +96,9 @@ export default function Login() {
         }
       } else {
         const errorData = await response.json().catch(() => ({}));
-        setErrors([errorData.message || 'Login failed: Invalid email or password']);
+        // Priority: Backend message -> Backend data (if string) -> Default error
+        const errMsg = errorData.message || (typeof errorData.data === 'string' ? errorData.data : null) || 'Login failed: Invalid email or password';
+        setErrors([errMsg]);
         setIsLoggedIn(false);
       }
     } catch (error) {
@@ -219,7 +221,7 @@ export default function Login() {
                 </div>
               )}
               
-              <div onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email Field */}
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -288,12 +290,12 @@ export default function Login() {
                 
                 {/* Login Button */}
                 <button 
-                  onClick={handleSubmit}
+                  type="submit"
                   disabled={isLoading}
                   className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed">
                   {isLoading ? 'Signing In...' : 'Sign In'}
                 </button>
-              </div>
+              </form>
               
               {/* Register Link */}
               <div className="mt-8 text-center">
