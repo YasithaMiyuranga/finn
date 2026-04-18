@@ -136,4 +136,8 @@ public class TrafficFineService {
 
         return new Respons<>(true, "Fine paid successfully", refNo);
     }
+
+    public List<TrafficFine> getFinesByLicenseId(String licenseId) {
+        return trafficFineRepo.findByLicenseId(licenseId);
+    }
 }
