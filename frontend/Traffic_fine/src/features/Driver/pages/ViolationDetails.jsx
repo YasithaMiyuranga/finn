@@ -143,26 +143,6 @@ export default function ViolationDetails() {
         printWindow.document.close();
     };
 
-    const handleCSV = () => {
-        const headers = ['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount'];
-        const rows = filteredViolations.map(v => [
-            v.id || '-',
-            v.act || '-',
-            v.provision || '-',
-            v.points || '0',
-            v.severity || 'LOW',
-            v.amount || '0'
-        ]);
-
-        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-        const csv = XLSX.utils.sheet_to_csv(worksheet);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "violation_details.csv");
-        link.click();
-    };
 
     const handleExcel = () => {
         const headers = ['Fine ID', 'Section', 'Violation Description', 'Points', 'Severity', 'Amount'];
@@ -322,9 +302,6 @@ export default function ViolationDetails() {
                             <div className="p-4">
                                 <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
                                     <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
-                                            📄 CSV
-                                        </button>
                                         <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">
                                             📊 Excel
                                         </button>
