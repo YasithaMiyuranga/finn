@@ -14,5 +14,10 @@ public interface TrafficFineRepo extends JpaRepository<TrafficFine,Integer>{
 
     java.util.List<TrafficFine> findByLicenseId(String licenseId);
 
+    long countByPoliceId(String policeId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT SUM(f.totalAmount) FROM TrafficFine f WHERE f.policeId = :policeId")
+    Double sumAmountByPoliceId(String policeId);
+
 }
 

@@ -133,6 +133,11 @@ public class TrafficFineController {
     public ResponseEntity<Respons<java.util.List<com.Traffic_Fines.System.Entity.TrafficFine>>> getFinesByDriver(@PathVariable String licenseId) {
         return ResponseEntity.ok(new Respons<>(true, "Driver fines fetched successfully", trafficFineService.getFinesByLicenseId(licenseId)));
     }
+
+    @GetMapping("/officer-performance/{policeId}")
+    public ResponseEntity<Respons<java.util.Map<String, Object>>> getOfficerPerformance(@PathVariable String policeId) {
+        return ResponseEntity.ok(new Respons<>(true, "Officer performance fetched successfully", trafficFineService.getOfficerPerformance(policeId)));
+    }
 }
 
 

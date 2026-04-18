@@ -140,4 +140,14 @@ public class TrafficFineService {
     public List<TrafficFine> getFinesByLicenseId(String licenseId) {
         return trafficFineRepo.findByLicenseId(licenseId);
     }
+
+    public java.util.Map<String, Object> getOfficerPerformance(String policeId) {
+        long count = trafficFineRepo.countByPoliceId(policeId);
+        Double sum = trafficFineRepo.sumAmountByPoliceId(policeId);
+        
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("reportedFineCount", count);
+        stats.put("reportedFineAmount", sum != null ? sum : 0.0);
+        return stats;
+    }
 }
