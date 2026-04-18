@@ -140,4 +140,35 @@ public class TrafficFineService {
     public List<TrafficFine> getFinesByLicenseId(String licenseId) {
         return trafficFineRepo.findByLicenseId(licenseId);
     }
+
+    public java.util.Map<String, Object> getOfficerPerformance(String policeId) {
+        long count = trafficFineRepo.countByPoliceId(policeId);
+        Double sum = trafficFineRepo.sumAmountByPoliceId(policeId);
+        
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("reportedFineCount", count);
+        stats.put("reportedFineAmount", sum != null ? sum : 0.0);
+        return stats;
+    }
+
+    public java.util.Map<String, Object> getDriverStats(String licenseId) {
+        long pendingCount = trafficFineRepo.countByLicenseIdAndStatus(licenseId, "pending");
+        Double pendingSum = trafficFineRepo.sumAmountByLicenseIdAndStatus(licenseId, "pending");
+        
+        long paidCount = trafficFineRepo.countByLicenseIdAndStatus(licenseId, "PAID");
+        Double paidSum = trafficFineRepo.sumAmountByLicenseIdAndStatus(licenseId, "PAID");
+        
+        long totalCount = trafficFineRepo.countByLicenseId(licenseId);
+        Double totalSum = trafficFineRepo.sumAmountByLicenseId(licenseId);
+
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("pendingFineCount", pendingCount);
+        stats.put("pendingFineAmount", pendingSum != null ? pendingSum : 0.0);
+        stats.put("paidFineCount", paidCount);
+        stats.put("paidFineAmount", paidSum != null ? paidSum : 0.0);
+        stats.put("totalFineTicketsCount", totalCount);
+        stats.put("totalFineTicketsAmount", totalSum != null ? totalSum : 0.0);
+        
+        return stats;
+    }
 }

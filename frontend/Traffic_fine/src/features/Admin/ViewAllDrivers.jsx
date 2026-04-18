@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, UserPlus, Users, ChevronDown, LogOut,
-    Edit, Bell, Info, Pencil, Trash2, Search, X, CheckSquare, Pause, ShieldCheck
+    Edit, Bell, Info, Pencil, Trash2, Search, X, CheckSquare, Pause, ShieldCheck,
+    TrendingUp, FileText, DollarSign, Activity, BarChart3
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -27,6 +28,18 @@ export default function ViewAllDrivers() {
     // Delete Modal
     const [deleteModal, setDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+
+    // Stats Modal
+    const [statsModal, setStatsModal] = useState(false);
+    const [driverStats, setDriverStats] = useState({
+        pendingFineCount: 0,
+        pendingFineAmount: 0,
+        paidFineCount: 0,
+        paidFineAmount: 0,
+        totalFineTicketsCount: 0,
+        totalFineTicketsAmount: 0
+    });
+    const [fetchingStats, setFetchingStats] = useState(false);
 
     useEffect(() => {
         fetchDrivers();
@@ -66,6 +79,33 @@ export default function ViewAllDrivers() {
         } catch (err) {
             console.error('Error deleting driver:', err);
             alert('An error occurred while deleting the driver');
+        }
+    };
+
+    const handleViewStats = async (driver) => {
+        setSelectedDriver(driver);
+        setFetchingStats(true);
+        setStatsModal(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:8080/api/traffic_fine/driver-stats/${driver.licenseNumber}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDriverStats(data.data || {
+                    pendingFineCount: 0,
+                    pendingFineAmount: 0,
+                    paidFineCount: 0,
+                    paidFineAmount: 0,
+                    totalFineTicketsCount: 0,
+                    totalFineTicketsAmount: 0
+                });
+            }
+        } catch (err) {
+            console.error('Error fetching driver stats:', err);
+        } finally {
+            setFetchingStats(false);
         }
     };
 
@@ -459,8 +499,13 @@ export default function ViewAllDrivers() {
                                                 <div style={{ display: 'flex', gap: '6px' }}>
                                                     <button onClick={() => { setSelectedDriver(driver); setViewModal(true); }}
                                                         style={{ backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
-                                                        title="View">
+                                                        title="View Details">
                                                         <Info size={14} />
+                                                    </button>
+                                                    <button onClick={() => handleViewStats(driver)}
+                                                        style={{ backgroundColor: '#4d2c80', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
+                                                        title="View Fine Statistics">
+                                                        <BarChart3 size={14} />
                                                     </button>
                                                     <button onClick={() => { setDeleteId(driver.id); setDeleteModal(true); }}
                                                         style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}
@@ -532,6 +577,103 @@ export default function ViewAllDrivers() {
                         <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                             <button onClick={() => setDeleteModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
                             <button onClick={handleDelete} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Confirm Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ======== DRIVER STATS MODAL ======== */}
+            {statsModal && selectedDriver && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
+                    <div style={{ background: 'white', borderRadius: '16px', width: '550px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+                        <div style={{ backgroundColor: '#4d2c80', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}>
+                                    <TrendingUp size={20} color="white" />
+                                </div>
+                                <div>
+                                    <h4 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: '700' }}>Driver Fine Statistics</h4>
+                                    <p style={{ color: 'rgba(255,255,255,0.7)', margin: 0, fontSize: '12px' }}>
+                                        {selectedDriver.firstName} {selectedDriver.lastName} | License: {selectedDriver.licenseNumber}
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => setStatsModal(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{ padding: '24px' }}>
+                            {fetchingStats ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Fetching driver statistics...</div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                    
+                                    {/* Stats Grid */}
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                        {/* Pending Stats */}
+                                        <div style={{ backgroundColor: '#fef2f2', padding: '16px', borderRadius: '12px', border: '1px solid #fee2e2' }}>
+                                            <div style={{ color: '#dc2626', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <Activity size={14} /> Pending Fines
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#b91c1c' }}>{driverStats.pendingFineCount}</div>
+                                                    <div style={{ fontSize: '11px', color: '#991b1b' }}>Tickets</div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#b91c1c' }}>Rs. {parseFloat(driverStats.pendingFineAmount).toLocaleString()}</div>
+                                                    <div style={{ fontSize: '11px', color: '#991b1b' }}>Total Amount</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Paid Stats */}
+                                        <div style={{ backgroundColor: '#ecfdf5', padding: '16px', borderRadius: '12px', border: '1px solid #d1fae5' }}>
+                                            <div style={{ color: '#059669', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <CheckSquare size={14} /> Paid Fines
+                                            </div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#047857' }}>{driverStats.paidFineCount}</div>
+                                                    <div style={{ fontSize: '11px', color: '#065f46' }}>Tickets</div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontSize: '18px', fontWeight: '700', color: '#047857' }}>Rs. {parseFloat(driverStats.paidFineAmount).toLocaleString()}</div>
+                                                    <div style={{ fontSize: '11px', color: '#065f46' }}>Total Amount</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Total Count Card */}
+                                    <div style={{ backgroundColor: '#f0f9ff', padding: '16px', borderRadius: '12px', border: '1px solid #e0f2fe', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <div style={{ backgroundColor: '#bae6fd', padding: '8px', borderRadius: '8px', color: '#0369a1' }}>
+                                                <FileText size={20} />
+                                            </div>
+                                            <div>
+                                                <div style={{ fontSize: '14px', fontWeight: '700', color: '#0c4a6e' }}>Total Fine Tickets</div>
+                                                <div style={{ fontSize: '11px', color: '#0369a1' }}>Lifetime records in eTRAFFIC</div>
+                                            </div>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <div style={{ fontSize: '28px', fontWeight: '900', color: '#0369a1', lineHeight: '1' }}>{driverStats.totalFineTicketsCount}</div>
+                                            <div style={{ fontSize: '12px', fontWeight: '700', color: '#0369a1', marginTop: '4px' }}>Rs. {parseFloat(driverStats.totalFineTicketsAmount).toLocaleString()}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Info Note */}
+                                    <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
+                                        * This data is calculated based on the official records registered under license ID: {selectedDriver.licenseNumber}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc' }}>
+                            <button onClick={() => setStatsModal(false)} style={{ backgroundColor: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 24px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
+                                Close Report
+                            </button>
                         </div>
                     </div>
                 </div>

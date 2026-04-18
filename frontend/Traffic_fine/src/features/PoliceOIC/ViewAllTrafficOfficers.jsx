@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, Users, ChevronDown, LogOut,
-    Pencil, Trash2, X, ShieldAlert
+    Pencil, Trash2, X, ShieldAlert,
+    Info, Activity, TrendingUp, FileText
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -21,6 +22,15 @@ export default function ViewAllTrafficOfficers() {
 
     const [deleteModal, setDeleteModal] = useState(false);
     const [deleteId, setDeleteId] = useState(null);
+
+    // Performance Modal
+    const [performanceModal, setPerformanceModal] = useState(false);
+    const [selectedOfficer, setSelectedOfficer] = useState(null);
+    const [officerStats, setOfficerStats] = useState({
+        reportedFineCount: 0,
+        reportedFineAmount: 0
+    });
+    const [fetchingStats, setFetchingStats] = useState(false);
 
     useEffect(() => {
         fetchOfficers();
@@ -88,6 +98,26 @@ export default function ViewAllTrafficOfficers() {
         } catch (err) {
             console.error('Error deleting officer:', err);
             alert('An error occurred while deleting the officer');
+        }
+    };
+
+    const handleViewPerformance = async (officer) => {
+        setSelectedOfficer(officer);
+        setFetchingStats(true);
+        setPerformanceModal(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:8080/api/traffic_fine/officer-performance/${officer.policeid}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setOfficerStats(data.data || { reportedFineCount: 0, reportedFineAmount: 0 });
+            }
+        } catch (err) {
+            console.error('Error fetching officer performance:', err);
+        } finally {
+            setFetchingStats(false);
         }
     };
 
@@ -387,8 +417,9 @@ export default function ViewAllTrafficOfficers() {
                                         <tr key={idx} style={{ backgroundColor: idx % 2 === 0 ? '#fff' : '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
                                             <td style={{ padding: '10px 16px' }}>
                                                 <div style={{ display: 'flex', gap: '6px' }}>
-                                                    <button onClick={() => { setEditData({ ...officer }); setEditModal(true); }} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}><Pencil size={14} /></button>
-                                                    <button onClick={() => { setDeleteId(officer.id); setDeleteModal(true); }} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                                                    <button onClick={() => handleViewPerformance(officer)} style={{ backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }} title="View Performance"><Info size={14} /></button>
+                                                    <button onClick={() => { setEditData({ ...officer }); setEditModal(true); }} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }} title="Edit"><Pencil size={14} /></button>
+                                                    <button onClick={() => { setDeleteId(officer.id); setDeleteModal(true); }} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', padding: '4px 8px', cursor: 'pointer' }} title="Delete"><Trash2 size={14} /></button>
                                                 </div>
                                             </td>
                                             <td style={{ padding: '10px 16px', color: '#212529' }}>P{String(officer.policeid || '').padStart(5, '0')}</td>
@@ -439,6 +470,63 @@ export default function ViewAllTrafficOfficers() {
                         <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                             <button onClick={() => setDeleteModal(false)} style={{ backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Close</button>
                             <button onClick={handleDelete} style={{ backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 18px', cursor: 'pointer', fontWeight: '600' }}>Confirm Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ======== OFFICER PERFORMANCE MODAL ======== */}
+            {performanceModal && selectedOfficer && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(5px)' }}>
+                    <div style={{ background: 'white', borderRadius: '16px', width: '500px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
+                        <div style={{ backgroundColor: '#007bff', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '8px', borderRadius: '8px' }}>
+                                    <Activity size={20} color="white" />
+                                </div>
+                                <h4 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: '700' }}>Officer Performance Report</h4>
+                            </div>
+                            <button onClick={() => setPerformanceModal(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{ padding: '24px' }}>
+                            <div style={{ marginBottom: '20px', borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+                                <div style={{ fontSize: '18px', fontWeight: '600', color: '#1e293b' }}>{selectedOfficer.fullName}</div>
+                                <div style={{ fontSize: '14px', color: '#64748b' }}>Officer ID: P{String(selectedOfficer.policeid).padStart(5, '0')}</div>
+                            </div>
+
+                            {fetchingStats ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>Calculating performance metrics...</div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                        <div style={{ backgroundColor: '#f0f9ff', padding: '20px', borderRadius: '12px', border: '1px solid #e0f2fe', textAlign: 'center' }}>
+                                            <FileText size={24} color="#007bff" style={{ margin: '0 auto 10px' }} />
+                                            <div style={{ fontSize: '24px', fontWeight: '800', color: '#0369a1' }}>{officerStats.reportedFineCount}</div>
+                                            <div style={{ fontSize: '12px', fontWeight: '600', color: '#0369a1', textTransform: 'uppercase' }}>Fine Count</div>
+                                        </div>
+                                        <div style={{ backgroundColor: '#f0fdf4', padding: '20px', borderRadius: '12px', border: '1px solid #dcfce7', textAlign: 'center' }}>
+                                            <TrendingUp size={24} color="#22c55e" style={{ margin: '0 auto 10px' }} />
+                                            <div style={{ fontSize: '20px', fontWeight: '800', color: '#15803d' }}>
+                                                {new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR' }).format(Number(officerStats.reportedFineAmount) || 0)}
+                                            </div>
+                                            <div style={{ fontSize: '12px', fontWeight: '600', color: '#15803d', textTransform: 'uppercase' }}>Total Amount</div>
+                                        </div>
+                                    </div>
+                                    <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #007bff' }}>
+                                        <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: '1.5' }}>
+                                            This performance report reflects all traffic fines reported by this officer since their registration date.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div style={{ padding: '16px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc' }}>
+                            <button onClick={() => setPerformanceModal(false)} style={{ backgroundColor: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 24px', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>
+                                Close Report
+                            </button>
                         </div>
                     </div>
                 </div>
