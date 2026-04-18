@@ -131,26 +131,6 @@ export default function ViewAllTrafficOfficers() {
         if (id === 'repeat-offenders') navigate('/dashboard/police-oic/repeat-offenders');
     };
 
-    const handleCSV = () => {
-        const headers = ['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date'];
-        const rows = officers.map(o => [
-            `P${String(o.policeid || '').padStart(5, '0')}`,
-            o.fullName || '-',
-            o.policeStation || '-',
-            o.court || '-',
-            o.userEmail || '-',
-            o.registeredDate || '-'
-        ]);
-
-        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-        const csv = XLSX.utils.sheet_to_csv(worksheet);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "traffic_officers_list.csv");
-        link.click();
-    };
 
     const handleExcel = () => {
         const headers = ['Officer ID', 'Traffic Officer Name', 'Police Station', 'Court', 'Traffic Officer Email', 'Registered Date'];
@@ -374,7 +354,6 @@ export default function ViewAllTrafficOfficers() {
 
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">📄 CSV</button>
                                 <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">📊 Excel</button>
                                 <button onClick={handlePDF} style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">📕 PDF</button>
                                 <button onClick={handlePrint} style={{ backgroundColor: '#495057', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }} className="hover:opacity-90 transition-opacity">🖨️ Print</button>
