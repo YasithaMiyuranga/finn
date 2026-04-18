@@ -103,25 +103,6 @@ export default function ViewAllDrivers() {
         if (id === 'repeat-offenders') navigate('/dashboard/police-oic/repeat-offenders');
     };
 
-    const handleCSV = () => {
-        const headers = ['License ID', 'Driver Email', 'Driver Full Name', 'License Issue Date', 'License Expire Date'];
-        const rows = drivers.map(d => [
-            d.licenseNumber || '-',
-            d.user?.email || d.email || '-',
-            `${d.firstName || ''} ${d.lastName || ''}`.trim() || '-',
-            d.licenseissue || '-',
-            d.licenseExpiry || '-'
-        ]);
-
-        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-        const csv = XLSX.utils.sheet_to_csv(worksheet);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a");
-        const url = URL.createObjectURL(blob);
-        link.setAttribute("href", url);
-        link.setAttribute("download", "drivers_list.csv");
-        link.click();
-    };
 
     const handleExcel = () => {
         const headers = ['License ID', 'Driver Email', 'Driver Full Name', 'License Issue Date', 'License Expire Date'];
@@ -259,7 +240,6 @@ export default function ViewAllDrivers() {
 
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <button onClick={handleCSV} style={{ backgroundColor: '#1d6fa4', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>📄 CSV</button>
                                 <button onClick={handleExcel} style={{ backgroundColor: '#1e7e34', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>📊 Excel</button>
                                 <button onClick={handlePDF} style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>📕 PDF</button>
                                 <button onClick={handlePrint} style={{ backgroundColor: '#495057', color: 'white', border: 'none', borderRadius: '5px', padding: '6px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>🖨️ Print</button>
