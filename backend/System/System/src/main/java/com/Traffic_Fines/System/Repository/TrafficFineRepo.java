@@ -12,5 +12,7 @@ public interface TrafficFineRepo extends JpaRepository<TrafficFine,Integer>{
     @org.springframework.data.jpa.repository.Query("SELECT SUM(f.points) FROM TrafficFine f WHERE f.licenseId = :licenseId AND f.issuedDate >= :startDate")
     Integer sumPointsByLicenseIdAndIssuedDateAfter(String licenseId, java.time.LocalDate startDate);
 
+    java.util.List<TrafficFine> findByLicenseId(String licenseId);
+
 }
 

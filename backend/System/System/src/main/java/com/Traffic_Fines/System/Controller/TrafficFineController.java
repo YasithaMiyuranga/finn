@@ -128,6 +128,11 @@ public class TrafficFineController {
         int points = trafficFineService.getDriverPointsInLast7Days(licenseId);
         return ResponseEntity.ok(new Respons<>(true, "Driver points fetched successfully", points));
     }
+
+    @GetMapping("/driver-fines/{licenseId}")
+    public ResponseEntity<Respons<java.util.List<com.Traffic_Fines.System.Entity.TrafficFine>>> getFinesByDriver(@PathVariable String licenseId) {
+        return ResponseEntity.ok(new Respons<>(true, "Driver fines fetched successfully", trafficFineService.getFinesByLicenseId(licenseId)));
+    }
 }
 
 

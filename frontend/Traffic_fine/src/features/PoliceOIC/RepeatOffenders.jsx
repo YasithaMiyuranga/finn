@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Menu, Users, ChevronDown, LogOut,
-    Search, UserCheck, ShieldAlert
+    Search, UserCheck, ShieldAlert, X
 } from 'lucide-react';
 
 export default function RepeatOffenders() {
@@ -15,6 +15,10 @@ export default function RepeatOffenders() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [processingId, setProcessingId] = useState(null);
+    const [finesModal, setFinesModal] = useState(false);
+    const [selectedDriverFines, setSelectedDriverFines] = useState([]);
+    const [fetchingFines, setFetchingFines] = useState(false);
+    const [selectedLicense, setSelectedLicense] = useState('');
 
     useEffect(() => {
         fetchSuspendedDrivers();
@@ -59,6 +63,26 @@ export default function RepeatOffenders() {
             alert('An error occurred during reactivation.');
         } finally {
             setProcessingId(null);
+        }
+    };
+
+    const handleViewFines = async (licenseNumber) => {
+        setSelectedLicense(licenseNumber);
+        setFetchingFines(true);
+        setFinesModal(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`http://localhost:8080/api/traffic_fine/driver-fines/${licenseNumber}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSelectedDriverFines(data.data || []);
+            }
+        } catch (err) {
+            console.error('Error fetching driver fines:', err);
+        } finally {
+            setFetchingFines(false);
         }
     };
 
@@ -383,34 +407,50 @@ export default function RepeatOffenders() {
                                                 )}
                                             </td>
                                             <td style={{ padding: '16px 24px' }}>
-                                                {!driver.isReactivated && (
+                                                <div style={{ display: 'flex', gap: '8px' }}>
                                                     <button
-                                                        onClick={() => handleReactivate(driver.licenseNumber)}
-                                                        disabled={processingId === driver.licenseNumber}
+                                                        onClick={() => handleViewFines(driver.licenseNumber)}
                                                         style={{
-                                                            backgroundColor: '#1a7a7a', color: 'white',
-                                                            padding: '8px 16px', borderRadius: '8px',
-                                                            border: 'none', cursor: 'pointer', fontSize: '13px',
-                                                            fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px',
-                                                            transition: 'all 0.2s',
-                                                            boxShadow: '0 2px 4px rgba(26,122,122,0.2)'
+                                                            backgroundColor: '#3b82f6', color: 'white',
+                                                            padding: '8px', borderRadius: '8px',
+                                                            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                                            transition: 'all 0.2s', boxShadow: '0 2px 4px rgba(59,130,246,0.2)'
                                                         }}
-                                                        onMouseOver={(e) => {
-                                                            e.target.style.backgroundColor = '#145d5d';
-                                                            e.target.style.transform = 'translateY(-1px)';
-                                                        }}
-                                                        onMouseOut={(e) => {
-                                                            e.target.style.backgroundColor = '#1a7a7a';
-                                                            e.target.style.transform = 'translateY(0)';
-                                                        }}
+                                                        title="View Violations"
+                                                        className="hover:bg-blue-600"
                                                     >
-                                                        {processingId === driver.licenseNumber ? 'Processing...' : (
-                                                            <>
-                                                                Reactivate
-                                                            </>
-                                                        )}
+                                                        <Search size={16} />
                                                     </button>
-                                                )}
+                                                    
+                                                    {!driver.isReactivated && (
+                                                        <button
+                                                            onClick={() => handleReactivate(driver.licenseNumber)}
+                                                            disabled={processingId === driver.licenseNumber}
+                                                            style={{
+                                                                backgroundColor: '#1a7a7a', color: 'white',
+                                                                padding: '8px 16px', borderRadius: '8px',
+                                                                border: 'none', cursor: 'pointer', fontSize: '13px',
+                                                                fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px',
+                                                                transition: 'all 0.2s',
+                                                                boxShadow: '0 2px 4px rgba(26,122,122,0.2)'
+                                                            }}
+                                                            onMouseOver={(e) => {
+                                                                e.target.style.backgroundColor = '#145d5d';
+                                                                e.target.style.transform = 'translateY(-1px)';
+                                                            }}
+                                                            onMouseOut={(e) => {
+                                                                e.target.style.backgroundColor = '#1a7a7a';
+                                                                e.target.style.transform = 'translateY(0)';
+                                                            }}
+                                                        >
+                                                            {processingId === driver.licenseNumber ? 'Processing...' : (
+                                                                <>
+                                                                    Reactivate
+                                                                </>
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -422,6 +462,126 @@ export default function RepeatOffenders() {
                 </div>
             </div>
 
+            {/* ======== FINE DETAILS MODAL ======== */}
+            {finesModal && (
+                <div style={{
+                    position: 'fixed', inset: 0,
+                    backgroundColor: 'rgba(15,23,42,0.65)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'white', borderRadius: '16px',
+                        width: '1000px', maxWidth: '95vw', maxHeight: '90vh',
+                        overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+                        display: 'flex', flexDirection: 'column'
+                    }}>
+                        {/* Header */}
+                        <div style={{
+                            backgroundColor: '#1e293b', padding: '20px 24px',
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}>
+                            <div>
+                                <h4 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: '700' }}>
+                                    Violation Details Report
+                                </h4>
+                                <p style={{ color: 'rgba(255,255,255,0.6)', margin: 0, fontSize: '13px' }}>
+                                    License ID: {selectedLicense}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setFinesModal(false)}
+                                style={{
+                                    background: 'rgba(255,255,255,0.1)', border: 'none',
+                                    color: 'white', cursor: 'pointer', borderRadius: '8px',
+                                    padding: '6px', display: 'flex'
+                                }}
+                                className="hover:bg-white/20"
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div style={{ padding: '24px', overflowY: 'auto', flex: 1 }}>
+                            {fetchingFines ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                                    Fetching data...
+                                </div>
+                            ) : selectedDriverFines.length === 0 ? (
+                                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+                                    No fine records found for this driver.
+                                </div>
+                            ) : (
+                                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                    <thead>
+                                        <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                                            <th style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontWeight: '700' }}>REF NO</th>
+                                            <th style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontWeight: '700' }}>VIOLATION</th>
+                                            <th style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontWeight: '700' }}>DATE</th>
+                                            <th style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontWeight: '700', textAlign: 'center' }}>POINTS</th>
+                                            <th style={{ padding: '12px 16px', fontSize: '13px', color: '#64748b', fontWeight: '700', textAlign: 'right' }}>AMOUNT (LKR)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {selectedDriverFines.map((fine) => (
+                                            <tr key={fine.refNo} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                                <td style={{ padding: '16px', fontSize: '14px', fontWeight: '700', color: '#334155' }}>#{fine.refNo}</td>
+                                                <td style={{ padding: '16px', fontSize: '14px', color: '#475569', maxWidth: '400px' }}>
+                                                    {fine.provisions || 'Traffic Violation'}
+                                                </td>
+                                                <td style={{ padding: '16px', fontSize: '14px', color: '#475569' }}>{fine.issuedDate}</td>
+                                                <td style={{ padding: '16px', textAlign: 'center' }}>
+                                                    <span style={{
+                                                        backgroundColor: '#fef2f2', color: '#991b1b',
+                                                        padding: '4px 10px', borderRadius: '4px',
+                                                        fontSize: '12px', fontWeight: '700'
+                                                    }}>
+                                                        {fine.points} pts
+                                                    </span>
+                                                </td>
+                                                <td style={{ padding: '16px', fontSize: '14px', fontWeight: '600', color: '#1e293b', textAlign: 'right' }}>
+                                                    {fine.totalAmount.toFixed(2)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr style={{ backgroundColor: '#f8fafc', fontWeight: '800' }}>
+                                            <td colSpan="3" style={{ padding: '16px', textAlign: 'right', fontSize: '14px', color: '#334155' }}>TOTAL SUMMARY:</td>
+                                            <td style={{ padding: '16px', textAlign: 'center', fontSize: '15px', color: '#b91c1c' }}>
+                                                {selectedDriverFines.reduce((acc, curr) => acc + curr.points, 0)} PTS
+                                            </td>
+                                            <td style={{ padding: '16px', textAlign: 'right', fontSize: '15px', color: '#1e293b' }}>
+                                                {selectedDriverFines.reduce((acc, curr) => acc + curr.totalAmount, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} LKR
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            )}
+                        </div>
+
+                        {/* Footer */}
+                        <div style={{
+                            padding: '16px 24px', borderTop: '1px solid #e2e8f0',
+                            display: 'flex', justifyContent: 'flex-end', backgroundColor: '#f8fafc'
+                        }}>
+                            <button
+                                onClick={() => setFinesModal(false)}
+                                style={{
+                                    backgroundColor: '#1e293b', color: 'white',
+                                    padding: '10px 24px', borderRadius: '8px',
+                                    border: 'none', cursor: 'pointer', fontWeight: '600',
+                                    fontSize: '14px'
+                                }}
+                            >
+                                Close Report
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
