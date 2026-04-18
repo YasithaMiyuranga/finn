@@ -293,7 +293,7 @@ export default function AdminOfficerDashboard() {
 
                     {/* Account Holder Badge */}
                     <div style={{ display: 'inline-block', backgroundColor: '#f8f9fa', border: '1px solid #e2e8f0', borderRadius: '50px', padding: '8px 18px', marginBottom: '20px', fontSize: '13px', fontWeight: '600', color: '#374151' }}>
-                        Account Holder : Traffic Police Admin
+                        Account Holder : Motor Traffic Department
                     </div>
 
                     {/* ======== STAT CARDS ======== */}
