@@ -116,6 +116,9 @@ export default function RepeatOffenders() {
         `${d.firstName} ${d.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const suspendedCount = suspendedDrivers.filter(d => !d.isReactivated).length;
+    const reactivatedCount = suspendedDrivers.filter(d => d.isReactivated).length;
+
     return (
         <div className="min-h-screen flex bg-gray-100" style={{ fontFamily: "'Segoe UI', Roboto, sans-serif" }}>
 
@@ -263,9 +266,11 @@ export default function RepeatOffenders() {
                     <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#0f172a', marginBottom: '8px' }}>Repeat Offenders Tracking</h1>
                     <p style={{ color: '#64748b', marginBottom: '24px' }}>Identify and manage drivers with high violation points who are currently suspended.</p>
 
-                    {/* ======== STAT CARD ======== */}
-                    <div style={{ maxWidth: '350px', marginBottom: '32px' }}>
+                    {/* ======== STAT CARDS ======== */}
+                    <div style={{ display: 'flex', gap: '20px', marginBottom: '32px', flexWrap: 'wrap' }}>
+                        {/* Suspended Card */}
                         <div style={{
+                            flex: '1', minWidth: '300px', maxWidth: '350px',
                             backgroundColor: '#991b1b', borderRadius: '12px',
                             padding: '32px 24px', color: 'white',
                             boxShadow: '0 10px 25px rgba(153,27,27,0.3)',
@@ -276,9 +281,28 @@ export default function RepeatOffenders() {
                             </div>
                             <div>
                                 <h3 style={{ fontSize: '36px', fontWeight: '800', margin: 0, lineHeight: 1 }}>
-                                    {suspendedDrivers.length}
+                                    {suspendedCount}
                                 </h3>
                                 <p style={{ margin: 0, fontSize: '14px', opacity: 0.9, fontWeight: '500' }}>Drivers Currently Suspended</p>
+                            </div>
+                        </div>
+
+                        {/* Reactivated Card */}
+                        <div style={{
+                            flex: '1', minWidth: '300px', maxWidth: '350px',
+                            backgroundColor: '#065f46', borderRadius: '12px',
+                            padding: '32px 24px', color: 'white',
+                            boxShadow: '0 10px 25px rgba(6,95,70,0.3)',
+                            display: 'flex', alignItems: 'center', gap: '20px'
+                        }}>
+                            <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '12px', borderRadius: '10px' }}>
+                                <UserCheck size={32} />
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '36px', fontWeight: '800', margin: 0, lineHeight: 1 }}>
+                                    {reactivatedCount}
+                                </h3>
+                                <p style={{ margin: 0, fontSize: '14px', opacity: 0.9, fontWeight: '500' }}>Drivers Currently Reactivated</p>
                             </div>
                         </div>
                     </div>
