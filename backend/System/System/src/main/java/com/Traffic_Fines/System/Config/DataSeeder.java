@@ -30,12 +30,12 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void createAdminIfNotExists() {
-        String adminEmail = "admin@stfms.com";
+        String adminEmail = "department@stfms.com";
 
         if (!userRepo.existsByEmail(adminEmail)) {
             User admin = new User();
             admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode("Admin@1234"));
+            admin.setPassword(passwordEncoder.encode("dep@123"));
             admin.setUserType(User.UserType.ADMIN);
             userRepo.save(admin);
             System.out.println("✅ Default Admin account created: " + adminEmail);
