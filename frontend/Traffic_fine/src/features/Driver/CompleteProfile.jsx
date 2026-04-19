@@ -105,7 +105,11 @@ export default function CompleteProfile() {
         const newErrors = {};
         if (!formData.firstName) newErrors.firstName = 'First Name is required';
         if (!formData.lastName) newErrors.lastName = 'Last Name is required';
-        if (!formData.licenseNumber) newErrors.licenseNumber = 'License ID is required';
+        if (!formData.licenseNumber) {
+            newErrors.licenseNumber = 'License ID is required';
+        } else if (String(formData.licenseNumber).length !== 6) {
+            newErrors.licenseNumber = 'License ID must be exactly 6 characters';
+        }
         if (!formData.phone) newErrors.phone = 'Phone number is required';
         if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Birthday is required';
         if (!formData.licenseissue) newErrors.licenseissue = 'Issue date is required';
@@ -256,7 +260,7 @@ export default function CompleteProfile() {
                                         <div className="space-y-1">
                                             <label className="text-[10px] font-bold text-gray-400 uppercase ml-1">Vehicle Class</label>
                                             <input type="text" name="classOfVehicle" value={formData.classOfVehicle} onChange={handleInputChange}
-                                                   className={`w-full px-4 py-3 border ${errors.classOfVehicle ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 outline-none text-sm`} placeholder="A, B, C" />
+                                                   className={`w-full px-4 py-3 border ${errors.classOfVehicle ? 'border-red-500 bg-red-50' : 'border-gray-300'} rounded-xl focus:border-blue-600 focus:ring-3 focus:ring-blue-100 outline-none text-sm`} placeholder="A1, A, B1, B" />
                                             {errors.classOfVehicle && <p className="text-[10px] text-red-500 ml-1">{errors.classOfVehicle}</p>}
                                         </div>
                                     </div>
