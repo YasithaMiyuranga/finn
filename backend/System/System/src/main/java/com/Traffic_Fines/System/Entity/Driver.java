@@ -80,20 +80,8 @@ public class Driver {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User user;
 
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
-    private List<Payment> payments;
-
     @JsonIgnore
     @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
     private List<PendingFine> pendingFines;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL)
-    private List<EmailNotification> emailNotifications;
-
-    @JsonIgnore
-    @OneToMany(mappedBy = "reporterDriver", cascade = CascadeType.ALL)
-    private List<GrievanceReport> grievanceReports;
 }

@@ -60,7 +60,5 @@ public class Police_Officers {
     private User user;
 
 
-    // New relationship for grievance reports
-    @OneToMany(mappedBy = "accusedOfficer", cascade = CascadeType.ALL)
-    private List<GrievanceReport> grievancesAgainst;
+
 }
