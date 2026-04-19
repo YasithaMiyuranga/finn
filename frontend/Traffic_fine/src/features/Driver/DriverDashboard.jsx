@@ -5,6 +5,7 @@ import {
     Coins, LayoutDashboard, FileText, CreditCard, 
     Bell, User, ChevronDown, LogOut, Car
 } from 'lucide-react';
+import ChatBot from './ChatBot';
 import { 
     PieChart, Pie, Cell, AreaChart, Area, 
     XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -404,6 +405,7 @@ export default function DriverDashboard() {
                     </div>
                 </main>
             </div>
+            <ChatBot />
         </div>
     );
 }
