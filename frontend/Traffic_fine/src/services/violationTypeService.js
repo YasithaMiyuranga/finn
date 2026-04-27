@@ -4,15 +4,15 @@ import api from './api';
 const violationTypeService = {
     // Get all violation types
     async getAllViolationTypes() {
-        const response = await api.get('/violation_type/getViolationType');
+        const response = await api.get('/Violation/getViolationTypes');
         return response.data;
     },
 
     // Get violation type by ID
     async getViolationTypeById(typeId) {
-        const response = await api.get('/violation_type/getViolationType');
+        const response = await api.get('/Violation/getViolationTypes');
         const allTypes = response.data.data || [];
-        return allTypes.find(v => v.typeId === typeId);
+        return allTypes.find(v => v.id === typeId);
     }
 };
 

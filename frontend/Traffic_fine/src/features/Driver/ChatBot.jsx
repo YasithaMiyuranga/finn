@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { MessageSquare, X, Send, Bot, User, Loader2 } from 'lucide-react';
 
+import violationTypeService from '../../services/violationTypeService';
+
 // API Configuration
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${API_KEY}`;
@@ -12,6 +14,7 @@ export default function ChatBot() {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [violationData, setViolationData] = useState([]);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -21,6 +24,20 @@ export default function ChatBot() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        const fetchViolations = async () => {
+            try {
+                const response = await violationTypeService.getAllViolationTypes();
+                // Check if response has data property, otherwise use response directly if it's an array
+                const data = response.data || response; 
+                setViolationData(data);
+            } catch (error) {
+                console.error("Failed to fetch violation types for chatbot context", error);
+            }
+        };
+        fetchViolations();
+    }, []);
 
     const handleSend = async (e) => {
         e.preventDefault();
@@ -33,12 +50,22 @@ export default function ChatBot() {
         setIsLoading(true);
 
         try {
+            // Format violation data into a string for the system prompt
+            const violationContext = violationData.map(v => 
+                `Violation: ${v.violationDescription || v.violation_description}, Law: ${v.slLawReference || v.sl_law_reference}, Fine Amount: ${v.amount} LKR, Penalty Points: ${v.points}, Severity: ${v.severityLevel || v.severity_level}`
+            ).join('\n');
+
+            const systemInstruction = `You are an eTraffic assistant for Sri Lanka. Answer the user's questions about traffic violations accurately using ONLY the following database records:\n${violationContext}\n\nIMPORTANT RULES:\n- Keep your answers short, direct, and conversational (1-3 sentences max).\n- Always reply in English.\n- If asked about a fine amount or points, give the exact numbers from the database.\n- Do not use markdown styling like bold (**), just plain text.`;
+
             const response = await fetch(API_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                    system_instruction: {
+                        parts: [{ text: systemInstruction }]
+                    },
                     contents: [{
                         parts: [{ text: currentInput }]
                     }]

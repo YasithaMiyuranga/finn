@@ -119,7 +119,7 @@ const PayFine = () => {
             console.log("Error:"  + error);
         };
 
-        // Start Payment
+        // Start Payment 
         window.payhere.startPayment(payment);
     };
 
