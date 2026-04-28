@@ -205,7 +205,7 @@ export default function PendingFine() {
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm text-red-700 font-bold">
-                                            Account Suspended: You have reached {points}/50 violation points. Online payment is disabled. Please go to your nearest police station and meet the Police OIC to reactivate your account.
+                                            Account Suspended: You have reached {points}/50 violation points. Online payment is disabled. Please go to your nearest police station to reactivate your account.
                                         </p>
                                     </div>
                                 </div>
